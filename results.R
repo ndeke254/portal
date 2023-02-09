@@ -20,9 +20,9 @@ names$Reg.No <- gsub(' ','',names$Reg.No)
 
 
  #Grade allocation
-x <- user_results$Science
-user_results<- user_results |> 
-  mutate( Maths_grade = 
+x <- results$`XET201 MICROECONOMICS`
+results <- results |> 
+  mutate( `XET201 MICROECONOMICS GRADE` = 
             case_when(
               x >= 70 ~'A',
               x >= 60 ~'B',
@@ -32,8 +32,8 @@ user_results<- user_results |>
             )
           )
 #combine columns
-user_results$Science <- paste(user_results$Science,
-                              user_results$Maths_grade)
+results$`XET201 MICROECONOMICS` <- paste(results$`XET201 MICROECONOMICS`,
+                              results$`XET201 MICROECONOMICS GRADE`)
 user_results <- user_results[,-7]
 
 #show grade alone
@@ -49,16 +49,30 @@ show_table <- data.frame(subject= name,
            score = final_grade
            )
 
+results$`XET201 MICROECONOMICS` <- runif(1002,23,99) |> round(0)
 
 
 
+results <- results[,-4]
+library(openxlsx)
+
+write.xlsx(names,'names.xlsx')
+write.xlsx(results,'results.xlsx')
 
 
+x <- 'X75/7666/2018' 
+grade <- results |> filter(Reg.No %in% x)
+grade <- grade |> select(`XET201 MICROECONOMICS`)
+r_score <- as.character(grade[1,])
+name <- grade |> colnames()
+grade_summary <- data.frame(Unit= name,
+                            Grade = r_score
+)
+final_grade <- str_sub(grade_summary$Grade,-1)
+show_table <- data.frame(subject= name,
+                         score = final_grade
+)
 
 
-
-
-
-
-
+grade[[1]]
 
