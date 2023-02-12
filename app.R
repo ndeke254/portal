@@ -7,32 +7,43 @@ library(tidyverse)
 results <- read_csv("results.csv",show_col_types = FALSE)
 
 #App User Interface
-
-ui <- fluidPage(
-  tags$h2(
-    'Admin View'
+ui <- navbarPage(
+  title = " PORTAL",
+  theme = bslib::bs_theme(4),
+  tabPanel(
+    title = "Overall",
+    value = "overall",
+    icon = icon("table-cells"),
+    selectizeInput(
+      inputId = "reg", 
+      label = "Registration number",
+      multiple = FALSE,
+      choices = NULL
+    ),
+    tableOutput('admin_results')
   ),
-  tableOutput('admin_results'),
-tags$h2(
-  'Students View'
-),
-selectizeInput(
-  inputId = "reg", 
-  label = "Registration number",
-  multiple = FALSE,
-  choices =''
-),
-textOutput('name'),
-tableOutput('student_results')
+  tabPanel(
+    title = "Student",
+    value = "student",
+    icon = icon("children"),
+    textOutput('name'),
+    tableOutput('student_results')
+  ),
+  tabPanel(
+    title = "Lecturer",
+    value = "lecturer",
+    icon = icon("person-chalkboard")
+  ),
 )
-#App server
 server <- function(input, output, session) {
   output$admin_results <- renderTable(
     results
   )
   updateSelectizeInput(
+    session = session,
     inputId = 'reg',
-    choices = results$Reg.No
+    choices = results$Reg.No,
+    server = TRUE
   )
   
   output$student_results <- renderTable({
@@ -43,22 +54,20 @@ server <- function(input, output, session) {
     name <- data |> colnames()
     grade_summary <- data.frame(Unit= name,
                                 Grade = r_score
-                                )
+    )
     final_grade <- str_sub(grade_summary$Grade,-1)
     show_table <- data.frame(Unit= name,
                              Grade = final_grade
-                             )
+    )
     show_table
-})
+  })
   output$name <- renderText({
     x <- input$reg
     data <- results |> filter(Reg.No %in% x)
     paste(data[[1]],
-    data[[2]])
+          data[[2]])
   })
 }
 
 shinyApp(ui, server)
-
-
 
