@@ -1,0 +1,6 @@
+.shiny-split-layout>div {
+    overflow: unset;
+}
+#div{
+     width: 13.286%; 
+}

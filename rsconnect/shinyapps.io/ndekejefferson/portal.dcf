@@ -1,0 +1,13 @@
+name: portal
+title: portal
+username:
+account: ndekejefferson
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8368784
+bundleId: 6869506
+url: https://ndekejefferson.shinyapps.io/portal/
+when: 1676972126.59158
+lastSyncTime: 1676972126.5916
+asMultiple: FALSE
+asStatic: FALSE
