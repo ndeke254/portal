@@ -11,7 +11,7 @@ library(prodlim)
 units <- read_csv("data/units.csv",show_col_types = FALSE)
 names <- read_csv("data/names.csv",show_col_types = FALSE)
 # Define the fields we want to save from the form
-fields <- c("reg", "name","code","score","grade",'time','lecturer')
+fields <- c("reg", "name","code","course","score","grade",'time','lecturer')
 users <- c('DR.JOHN','PROF.MAKORE','MR.WAMAE','MS.MUTUA','DR.OCHIENG')
 # use this list for all your toasts
 myToastOptions <- list(
@@ -81,7 +81,42 @@ ui = navbarPage(
  tabPanel(
   title = "Lecturer",
   value = "lecturer",
-  icon = icon("person-chalkboard")
+  icon = icon("person-chalkboard"),
+  tags$hr(),
+  splitLayout(
+   selectizeInput(
+    inputId = "reg", 
+    label = "Registration number",
+    multiple = FALSE,
+    choices = NULL
+   ),
+   disabled(
+    textInput('name','Student name',placeholder ='name')
+   ),
+    selectizeInput(
+    inputId = "code", 
+    label = "Code",
+    multiple = FALSE,
+    choices = NULL,
+    width = '70px'
+   ),
+   disabled(
+    textInput('course','Course',placeholder ='course')
+   ),
+   numericInput('score','Score',value =NULL,min = 1,max = 99,width = '60px' ),
+   disabled(
+    textInput('grade','Grade',width = '40px'),
+    hidden(textInput('time','Time')),
+    hidden(textInput('lecturer','Lecturer'))
+   ),
+   div(
+    style="padding-top: 25px;",
+    loadingButton("submit", "Submit",loadingLabel = 'Entering',
+                  loadingSpinner = 'cog',loadingStyle = 'color:green'),
+   )
+  ),
+  tags$hr(),
+  DT::dataTableOutput("marks_lec")
  ),
  tabPanel(
   title = "Student",
@@ -199,7 +234,7 @@ server = function(input, output, session) {
     updateTextInput(
       session = session,
       inputId = 'time',
-      value = format(Sys.time(), "%a %e %b %Y %H:%M:%S ")
+      value = format(Sys.time(), "%a %e %b %Y %H:%M:%S ") 
     )
     updateTextInput(
       session = session,
@@ -257,13 +292,28 @@ showToast(
      data <- lapply(files, read.csv, stringsAsFactors = FALSE) 
      # Concatenate all data together into one data.frame
      data <- do.call(rbind, data) 
-     data 
+     data <- data |> arrange(desc(time))
+     data
    }
    # Show the previous responses
    # (update with current response when Submit is clicked)
    output$marks <- DT::renderDataTable({
-    loadData() 
+    loadData()
    }) 
+   #student name
+   output$student_name <- renderText({
+    paste(input$reg,input$name)
+   })
+   #student_tab marks
+   output$student_marks <- DT::renderDataTable({
+    t_b <- loadData() |> filter(reg %in% input$reg) |> select(code,course,grade)|>
+     arrange(code)
+    t_b
+   })
+   #lecturer_tab_marks
+   output$marks_lec <- DT::renderDataTable({
+    loadData()
+   })
    showToast(
     'success','Mark entered.',.options = myToastOptions
     ) 
@@ -283,7 +333,6 @@ showToast(
     inputId = 'score',
     value = ''
    )
-
   }
  })
 
