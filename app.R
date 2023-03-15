@@ -32,9 +32,14 @@ myToastOptions <- list(
  hideMethod = "fadeOut"
 )
 
-ui = fluidPage(
+ui = navbarPage(
+ title = " PORTAL",
+ theme = bslib::bs_theme(4),
+ tabPanel(
+  title = "Administrator",
+  value = "admin",
+  icon = icon("table-cells"),
   useShinyjs(),
-  tags$br(),
   tags$hr(),
   useShinyFeedback(),
   includeCSS('www/styles.css'),
@@ -72,7 +77,20 @@ ui = fluidPage(
   ),
   tags$hr(),
   DT::dataTableOutput("marks")
-  
+ ),
+ tabPanel(
+  title = "Lecturer",
+  value = "lecturer",
+  icon = icon("person-chalkboard")
+ ),
+ tabPanel(
+  title = "Student",
+  value = "student",
+  icon = icon("children"),
+  textOutput('student_name'),
+  tags$hr(),
+  DT::dataTableOutput("student_marks")
+ )
 )
 server = function(input, output, session) {
   # entered data
@@ -138,15 +156,22 @@ server = function(input, output, session) {
      data 
     }
     data_entered <- c(input$reg,input$code) 
-    data_saved <- loadData() |> select(reg,code)
-    #check for a row match
-    if(is.na(row.match(data_entered,data_saved))) {
-     enable('submit')
-    } else {
-     showToast('warning','Mark already exists!',.options = myToastOptions)
-     disable('submit')
-    }
-})
+    if(is.null(loadData())) {
+     return() 
+     } else {
+      #write the data to database
+      write.csv(loadData(),'data/released_results.csv')
+      data_saved <- loadData()|> select(reg,code)
+      #check for a row match
+      if(is.na(row.match(data_entered,data_saved))) {
+       enable('submit')
+      } else {
+       showToast('warning','Mark already exists!',.options = myToastOptions)
+       disable('submit')
+      }
+     }
+     })
+   
   #resetting fields
   observeEvent(input$reg, {
     updateTextInput(
