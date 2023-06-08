@@ -2,11 +2,13 @@ library(shiny)
 library(rdrop2)
 library(shinyFeedback)
 library(shinyjs)
+library(shinyBS)
 library(readr)
 library(shinyvalidate)
 library(DT)
 library(tidyverse)
 library(prodlim)
+library(shinyWidgets)
 #import data
 units <- read_csv("data/units.csv",show_col_types = FALSE)
 names <- read_csv("data/names.csv",show_col_types = FALSE)
@@ -18,7 +20,7 @@ myToastOptions <- list(
  positionClass = "toast-top-right",
  progressBar = FALSE,
  timeOut = 3000,
- closeButton = TRUE,
+ closeButton = FALSE,
  
  # same as defaults
  newestOnTop = TRUE,
@@ -33,7 +35,9 @@ myToastOptions <- list(
 )
 
 ui = navbarPage(
- title = " PORTAL",
+ position = c("fixed-top"),
+ windowTitle = "University of Marseille",
+ title = tags$img(src = "logo.png"),
  theme = bslib::bs_theme(4),
  tabPanel(
   title = "Administrator",
@@ -44,35 +48,39 @@ ui = navbarPage(
   useShinyFeedback(),
   includeCSS('www/styles.css'),
   splitLayout(
+   cellWidths = c("10.286%","14.286%","5.286%",
+                  "24.286%","5.286%","4.286%","14.286%"),
     selectizeInput(
     inputId = "reg", 
     label = "Registration number",
     multiple = FALSE,
     choices = NULL
-  ),
+    ),
   disabled(
-    textInput('name','Student name',placeholder ='name')
+    textInput('name','Student name',placeholder ="Selected student")
   ),
   selectizeInput(
     inputId = "code", 
     label = "Code",
     multiple = FALSE,
-    choices = NULL,
-    width = '70px'
+    choices = NULL
     ),
   disabled(
-    textInput('course','Course',placeholder ='course')
+    textInput('course','Course',placeholder ='Selected course')
   ),
-  numericInput('score','Score',value =NULL,min = 1,max = 99,width = '60px' ),
+  numericInput('score','Score',value =NULL,min = 1,max = 99 ),
   disabled(
-    textInput('grade','Grade',width = '40px'),
+    textInput('grade','Grade'),
    hidden(textInput('time','Time')),
    hidden(textInput('lecturer','Lecturer'))
+   
     ),
   div(
-    style="padding-top: 25px;",
-  loadingButton("submit", "Submit",loadingLabel = 'Entering',
-                loadingSpinner = 'cog',loadingStyle = 'color:green'),
+   style="padding-top: 25px;",
+   loadingButton("submit", "Submit",
+                 loadingLabel = "Entering",
+                 loadingSpinner = "cog"
+                 )
   )
   ),
   tags$hr(),
@@ -97,22 +105,22 @@ ui = navbarPage(
     inputId = "code", 
     label = "Code",
     multiple = FALSE,
-    choices = NULL,
-    width = '70px'
+    choices = NULL
    ),
    disabled(
     textInput('course','Course',placeholder ='course')
    ),
-   numericInput('score','Score',value =NULL,min = 1,max = 99,width = '60px' ),
+   numericInput('score','Score',value =NULL,min = 1,max = 99),
    disabled(
-    textInput('grade','Grade',width = '40px'),
+    textInput('grade','Grade'),
     hidden(textInput('time','Time')),
     hidden(textInput('lecturer','Lecturer'))
    ),
    div(
     style="padding-top: 25px;",
-    loadingButton("submit", "Submit",loadingLabel = 'Entering',
-                  loadingSpinner = 'cog',loadingStyle = 'color:green'),
+    loadingButton("submit", "Submit",
+                  loadingLabel = "Entering",
+                  loadingSpinner = "cog"),
    )
   ),
   tags$hr(),
@@ -127,6 +135,7 @@ ui = navbarPage(
   DT::dataTableOutput("student_marks")
  )
 )
+
 server = function(input, output, session) {
   # entered data
   outputDir <- "responses"
@@ -144,6 +153,37 @@ server = function(input, output, session) {
     choices = units$code,
     server = TRUE,
     options = list(maxOptions = 3)
+  )
+  #check already available results
+  #load available data
+  shinyInput <- function(FUN, len, id, ...) {
+   inputs <- character(len)
+   for (i in seq_len(len)) {
+    inputs[i] <- as.character(FUN(paste0(id, i), ...))
+   }
+   inputs
+  }
+  loadData <- function() {
+   # Read all the files into a list
+   files <- list.files(outputDir, full.names = TRUE)
+   data <- lapply(files, read.csv, stringsAsFactors = FALSE) 
+   # Concatenate all data together into one data.frame
+   data <- do.call(rbind, data)
+   #arrange with latest on top
+   data <- apply(data,2,rev)
+   data <- as.data.frame(data)
+   data$score <- as.numeric(data$score) |> round(0)
+   n <- nrow(data)
+   data$Actions <- paste0(
+    shinyInput(actionButton, n, id = "approve",label = icon("check-to-slot")),
+    shinyInput(actionButton, n, id = "delete",label = icon("trash")),
+    shinyInput(actionButton, n, id = "edit",label = icon("file-pen"))
+   )
+   data
+  }
+  #initial rendered data
+  output$marks <- DT::renderDataTable(
+   loadData(),server = FALSE, escape = FALSE, selection = 'none'
   )
  
   #update uneditable fields from database
@@ -179,17 +219,6 @@ server = function(input, output, session) {
       inputId = 'grade',
       value = grade
     )
-    
-    #check already available results
-    #load available data
-    loadData <- function() {
-     # Read all the files into a list
-     files <- list.files(outputDir, full.names = TRUE)
-     data <- lapply(files, read.csv, stringsAsFactors = FALSE) 
-     # Concatenate all data together into one data.frame
-     data <- do.call(rbind, data) 
-     data 
-    }
     data_entered <- c(input$reg,input$code) 
     if(is.null(loadData())) {
      return() 
@@ -201,7 +230,9 @@ server = function(input, output, session) {
       if(is.na(row.match(data_entered,data_saved))) {
        enable('submit')
       } else {
-       showToast('warning','Mark already exists!',.options = myToastOptions)
+       showToast('error','Mark already exists!',
+                  .options = myToastOptions
+                 )
        disable('submit')
       }
      }
@@ -231,20 +262,21 @@ server = function(input, output, session) {
       inputId = 'score',
       value = ''
     )
-    updateTextInput(
-      session = session,
-      inputId = 'time',
-      value = format(Sys.time(), "%a %e %b %Y %H:%M:%S ") 
-    )
-    updateTextInput(
-      session = session,
-      inputId = 'lecturer',
-      value = sample(users,1)
-    )
   })
  observeEvent(input$score,{
+  #record entry time and lecturer
+  updateTextInput(
+   session = session,
+   inputId = 'time',
+   value = format(Sys.time(), "%d-%m-%Y %H:%M") 
+  )
+  updateTextInput(
+   session = session,
+   inputId = 'lecturer',
+   value = sample(users,1)
+  )
    x <- input$score
-   if(x>99 |is.na(x)| x<1) {
+   if(x > 99 |is.na(x)| x < 1 | nchar(x)> 2 ) {
      updateNumericInput(
        session = session,
        inputId = 'score',
@@ -253,7 +285,7 @@ server = function(input, output, session) {
    }else {
     return()
    }
- } )
+ })
  
  # When the Submit button is clicked, save the form data
  observeEvent(input$submit, {
@@ -265,7 +297,7 @@ showToast(
  'error','Fill all fields!',.options = myToastOptions
  )   
   } else {
-   # Whenever a field is filled, aggregate all form data
+   # Whenever all fields are filled, aggregate form data
    formData <- reactive({
      data <- sapply(fields, function(x) input[[x]])
      data 
@@ -287,19 +319,28 @@ showToast(
    saveData(formData())
    resetLoadingButton('submit')
    loadData <- function() {
-     # Read all the files into a list
-     files <- list.files(outputDir, full.names = TRUE)
-     data <- lapply(files, read.csv, stringsAsFactors = FALSE) 
-     # Concatenate all data together into one data.frame
-     data <- do.call(rbind, data) 
-     data <- data |> arrange(desc(time))
-     data
+    # Read all the files into a list
+    files <- list.files(outputDir, full.names = TRUE)
+    data <- lapply(files, read.csv, stringsAsFactors = FALSE) 
+    # Concatenate all data together into one data.frame
+    data <- do.call(rbind, data)
+    #arrange with latest on top
+    data <- apply(data,2,rev)
+    data <- as.data.frame(data)
+    data$score <- as.numeric(data$score) |> round(0)
+    n <- nrow(data)
+    data$Actions <- paste0(
+     shinyInput(actionButton, n, id = "approve",label = icon("check-to-slot")),
+     shinyInput(actionButton, n, id = "delete",label = icon("trash")),
+     shinyInput(actionButton, n, id = "edit",label = icon("file-pen"))
+    )
+    data 
    }
    # Show the previous responses
    # (update with current response when Submit is clicked)
-   output$marks <- DT::renderDataTable({
-    loadData()
-   }) 
+   output$marks <- DT::renderDataTable(
+    loadData(),server = FALSE, escape = FALSE, selection = 'none'
+    ) 
    #student name
    output$student_name <- renderText({
     paste(input$reg,input$name)
@@ -335,7 +376,7 @@ showToast(
    )
   }
  })
-
+ 
 }
 
 shinyApp(ui, server)
