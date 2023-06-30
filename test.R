@@ -1,78 +1,33 @@
-library(tidyverse)
+library(shiny)
 library(stringr)
-library(rvest)
-library(datapasta)
-#import
-names <- readxl::read_excel('user_results.xlsx')
-names$Name <- paste(names$Name,names$Name1)
-names <- names[,-3]
-fix(names)
-names <- names |> mutate (Reg.No= sample(1435:9714,1002,rep=FALSE))
-unique(names$Reg.No)
-department <- c('X74/','X75/')
-dep <- sample(department,1002,rep=TRUE)
-names <- names[,-3]
-names$year <- rep('/2018',1002)
-names$Reg.No <- paste(names$Reg.No,names$year)
-nchar(names$Reg.No)
-grepl('',names$Reg.No)
-names$Reg.No <- gsub(' ','',names$Reg.No)
 
+button <- '<button id="approve_ 2" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-check-to-slot" role="presentation" aria-label="check-to-slot icon"></i></button><button id="delete_ 2" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button><button id="edit_ 2" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>'
 
- #Grade allocation
-x <- results$`XET201 MICROECONOMICS`
-results <- results |> 
-  mutate( `XET201 MICROECONOMICS GRADE` = 
-            case_when(
-              x >= 70 ~'A',
-              x >= 60 ~'B',
-              x >= 50 ~'C',
-              x >= 40 ~'D',
-              TRUE ~ 'E'
-            )
-          )
-#combine columns
-results$`XET201 MICROECONOMICS` <- paste(results$`XET201 MICROECONOMICS`,
-                              results$`XET201 MICROECONOMICS GRADE`)
-user_results <- user_results[,-7]
-
-#show grade alone
-grade <- user_results |> subset(user=='Jefferson') 
-grade <- grade[,-1]
-r_score <- as.character(grade[1,])
-name <- grade |> colnames()
-grade_summary <- data.frame(subject= name,
-                             score = r_score
-                            )
-final_grade <- str_sub(grade_summary$score,-1)
-show_table <- data.frame(subject= name,
-           score = final_grade
-           )
-
-results$`XET201 MICROECONOMICS` <- runif(1002,23,99) |> round(0)
-
-
-
-results <- results[,-4]
-library(openxlsx)
-
-write.xlsx(names,'names.xlsx')
-write.xlsx(results,'results.xlsx')
-
-
-x <- 'X75/7666/2018' 
-grade <- results |> filter(Reg.No %in% x)
-grade <- grade |> select(`XET201 MICROECONOMICS`)
-r_score <- as.character(grade[1,])
-name <- grade |> colnames()
-grade_summary <- data.frame(Unit= name,
-                            Grade = r_score
-)
-final_grade <- str_sub(grade_summary$Grade,-1)
-show_table <- data.frame(subject= name,
-                         score = final_grade
+ui <- fluidPage(
+ titlePanel("Dynamic Button Generation"),
+ sidebarLayout(
+  sidebarPanel(
+   actionButton("addButton", "Add Button")
+  ),
+  mainPanel(
+   tableOutput("buttonTable")
+  )
+ )
 )
 
+server <- function(input, output) {
+ buttons <- reactiveValues(data = data.frame(id = numeric(0), button = character(0), stringsAsFactors = FALSE))
+ 
+ observeEvent(input$addButton, {
+  num_buttons <- nrow(buttons$data)
+  new_id <- num_buttons + 1
+  new_button <- str_replace(button, "2", as.character(new_id))
+  buttons$data <- rbind(buttons$data, data.frame(id = new_id, button = as.character(new_button), stringsAsFactors = FALSE))
+ })
+ 
+ output$buttonTable <- renderTable({
+  buttons$data
+ }, sanitize.text.function = function(x) x)
+}
 
-grade[[1]]
-
+shinyApp(ui, server)
