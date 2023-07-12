@@ -2,7 +2,7 @@
     overflow: unset;
 }
 .shiny-split-layout {
-    margin-top: 100px;
+    margin-top: 110px;
 }
 .navbar-brand {
   width: 15px;
@@ -267,13 +267,28 @@ button#registerButton {
     background-repeat: no-repeat;
     color: #fff;
 }
-.card, .well {
-    background-color: transparent;
-    border: 0px solid rgba(0,0,0,0%);
-}
 .btn-default:focus, .btn-default.focus {
     color: #000;
     background-color: #c8cfd6;
     border-color: #c1c9d0;
     box-shadow: 0 0 0 0.0rem rgb(189 192 196 / 50%);
+}
+label#student_reg-label {
+    margin-top: 110px;
+}
+div#student_marks {
+ margin-bottom: 110px;
+ max-width: fit-content; 
+}
+.student_entry {
+ align-items: center; 
+ justify-content: center;
+}
+div#student_name {
+ text-align: center;
+ text-transform: uppercase;
+}
+div#student_course {
+ text-align: center;
+ text-transform: uppercase;
 }
