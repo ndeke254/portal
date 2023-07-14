@@ -16,7 +16,7 @@ units <- read_csv("data/units.csv",show_col_types = FALSE) # nolint
 marks_fields <- c("reg", "name", "code", "course",
             "score", "grade", "time", "lecturer","actions")
 users <- c("DR.JOHN", "PROF.MAKORE", "MR.WAMAE", "MS.MUTUA", "DR.OCHIENG")# nolint
-reg_fields <- c("nameInput",	"genderInput",	"IdInput",	"regInput","codeInput","courseInput", "dateInput",	"buttons")
+reg_fields <- c("Name",	"Gender",	"ID",	"Reg","Code","Course", "Date",	"Buttons","Year")
 # use this list for all your toasts
 myToastOptions <- list( # nolint
  positionClass = "toast-top-right", # nolint
@@ -36,7 +36,11 @@ myToastOptions <- list( # nolint
 )
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
- windowTitle = "University of Marseille", # nolint
+ windowTitle = tags$head(
+  tags$link(rel = "icon",
+            type = "image/png",
+            href = "logo.png"),
+  tags$title("University of Kitui")), # nolint
  title = tags$img(src = "logo.png"), # nolint
  theme = bslib::bs_theme(4),
  tabPanel(
@@ -46,6 +50,7 @@ ui <- navbarPage(
   useShinyjs(),
   useShinyFeedback(),
   includeCSS("www/styles.css"),
+  bsTooltip("reset","Reset","right","hover"),
   splitLayout(
    cellWidths = c("10.286%","14.286%","5.286%", # nolint
                   "24.286%","5.286%","4.286%","14.286%"), # nolint
@@ -90,66 +95,62 @@ ui <- navbarPage(
   title = "Administrator", # nolint
   value = "admin",
   icon = icon("table-cells"),  
-  div(class = "input-line",
-      div(class = "form-group",
-          textInput("nameInput", 
-                    "Name", 
-                    width = "225px")
-      ),
-      div(class = "form-group",
-          selectInput("genderInput", "Gender", 
-                      choices = c("Male", "Female"),
-                      width = "100px",
-                      selected = NULL)
-      ),
-      div(class = "form-group id-field",
-          numericInput("IdInput", "ID", 
-                       value = "", 
-                       width = "110px")
-      ),
-      disabled(
-       div(class = "form-group",
-           textInput("dateInput", 
-                     "Date", 
-                     value = format(Sys.time(), "%d-%m-%Y %H:%M"),
-                     width = "120px")
-       )
-      ),
-      div(class = "form-group",
-          selectInput("codeInput",
-                      "Code",
-                      choices = c("X74", "X75"),
-                      width = "55px",
-                      selected = NULL)
-      ),
-      disabled(
-       div(class = "form-group",
-           textInput("regInput",
-                     "Registration Number", 
-                     value = "", 
-                     width = "150px")
-       )
-      ),
-      div(class = "form-group",
-          fileInput("photoInput",
-                    "Select Photo", 
-                    accept = c("image/jpeg", "image/png")
-          ),
-         
-          textInput( "courseInput", label = "Course"),
-          textInput("buttons", label = ""),
+  splitLayout(
+   cellWidths = c("18.286%","8.286%","9.286%", # nolint
+                  "5.286%","12.286%","24.286%","0%","8.286%"
+                  ),
+   textInput("Name", 
+             "Name", 
+             width = "225px"),
+   selectInput("Gender", 
+               "Gender",
+               choices = c("Male", "Female"),
+               width = "100px",
+               selected = NULL),
+   numericInput("ID", "ID",
+                value = "", 
+                width = "110px"),
+   selectInput("Code",
+               "Code",
+               choices = c("X74", "X75"),
+               width = "55px",
+               selected = NULL),
+   disabled(
+    hidden(
+     textInput("Date", 
+               "Date",
+               value = format(Sys.time(), "%d-%m-%Y %H:%M"),
+               width = "120px")
+     ),
+    textInput("Reg",
+              "Registration Number",
+              value = "",
+              width = "150px")
+    ),
+   fileInput("photoInput",
+             "Select Photo", 
+             accept = c("image/jpeg", "image/png")
+             ),
+   hidden(textInput("Course", label = "Course"),
+          textInput("Buttons", label = ""),
           textInput("toggle", label = "", value = "0"),
-          textInput("editmode", label = "", value = "0")
-          
+          textInput("editmode", label = "", value = "0"),
+          textInput("Year", label = "Year", value = "1")
           ),
-      div(
-       style = "padding-top: 25px;",
-       loadingButton("registerButton", "Register",
-                     style = "width: 110px;margin-top: -34px;",
-                     loadingLabel = "Registering",
-                     loadingSpinner = "cog")
-      )
-  ),
+   conditionalPanel(
+   condition = "input.editreg_button", 
+   tags$div( id="reset_button",
+   actionButton(inputId = "reset",
+                label = "",
+                icon = icon("refresh"),
+                title = "Reset fields")
+   )
+   ),
+   loadingButton("registerButton", "Register",
+               style = "width: 110px;margin-top: -34px;",
+               loadingLabel = "Registering",
+               loadingSpinner = "cog")
+   ),
   tags$hr(),
   DT::dataTableOutput("registrationTable"),
  ),
@@ -157,15 +158,25 @@ ui <- navbarPage(
   title = "Student",
   value = "student",
   icon = icon("children"),
+  splitLayout(
+   cellWidths = c("10.286%","14.286%","5.286%", # nolint
+                  "24.286%","5.286%","4.286%","14.286%"),
  selectizeInput(
   inputId = "student_reg",
   label = "Registration number", # nolint
   multiple = FALSE,
   choices = NULL
+  ),
+ selectizeInput(
+  inputId = "register_unit",
+  label = "Register Unit", # nolint
+  multiple = FALSE,
+  choices = NULL
  ),
+ ),
+ tags$hr(),
   textOutput("student_name"),
   textOutput("student_course"),
-  tags$hr(),
   DT::dataTableOutput("student_marks")
  )
  )
@@ -186,24 +197,27 @@ server <- function(input, output, session){
   #registrationData <-  Read all the files into a list
   registered_files <- list.files(registeredDir, full.names = TRUE) 
   if (length(registered_files) == 0 ) {
-   data <- data.frame( 
-    name = character(0), 
-    gender = character(0), 
+    data <- data.frame( 
+    Name = character(0), 
+    Gender = character(0), 
     ID = character(0),
-    reg = character(0), 
-    code = character(0),
-    course = character(0),
-    date = character(0), 
-    buttons = character(0),
-    filename = character(0),
+    Reg = character(0), 
+    Code = character(0),
+    Course = character(0),
+    Date = character(0), 
+    Buttons = character(0),
+    Filename = character(0),
+    Year = character(0),
     stringsAsFactors = FALSE
     )
    #update the buttons
    updateTextInput(
     session = session,
-    inputId = "buttons",
-    value = '<button id="deletereg_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;deletereg_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button><button id="editreg_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;editreg_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>'
-   )
+    inputId = "Buttons",
+    value = '<button id="deletereg_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;deletereg_button&quot; , this.id, {priority: &quot;event&quot;})" title="Delete Registration"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
+    <button id="editreg_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;editreg_button&quot; , this.id, {priority: &quot;event&quot;})" title="Edit Registration"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
+    <button id="year_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;year_button&quot; , this.id, {priority: &quot;event&quot;})" title="Promote Year"> <i class="fa fa-plus" role="presentation" aria-label="file-pen icon"></i></button>'
+    )
    data
   } else if (length(registered_files) == 1){
    registered_data <- lapply(registered_files, read.csv, stringsAsFactors = FALSE)
@@ -214,11 +228,11 @@ server <- function(input, output, session){
    #data set
    data <- registered_data
    # Set column names using colnames
-   colnames(data) <- c("name", "gender", "ID", "reg", "code","course","date",
-                       "buttons","filename"
+   colnames(data) <- c("Name", "Gender", "ID", "Reg", "Code","Course","Date",
+                       "Buttons","Year","Filename"
                        )
    data
-   button <- data |> select(buttons)
+   button <- data |> select(Buttons)
    button  <- button[[1,1]]
    # Find all IDs containing a number
    ids <- str_extract_all(button, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
@@ -233,7 +247,7 @@ server <- function(input, output, session){
    #update the buttons
    updateTextInput(
     session = session,
-    inputId = "buttons",
+    inputId = "Buttons",
     value =  new_button
    )
    data
@@ -245,16 +259,16 @@ server <- function(input, output, session){
    registered_data <- apply(registered_data, 2, rev)
    #set as a data frame
    registered_data <- as.data.frame(registered_data)
-   #assign filename column
+   #assign Filename column
    registered_data$Filename <-  rev(registered_files)
    #combine the two sets of data
-   data <- registered_data |> arrange(desc(dateInput))
+   data <- registered_data |> arrange(desc(Date))
    # Set column names using colnames
-   colnames(data) <- c("name", "gender", "ID", "reg", "code", "course",
-                       "date", "buttons","filename"
-                       )
+   colnames(data) <- c("Name", "Gender", "ID", "Reg", "Code","Course","Date",
+                       "Buttons","Year","Filename"
+   )
    data
-   button <- data |> select(buttons)
+   button <- data |> select(Buttons)
    button  <- button[[1,1]]
    # Find all IDs containing a number
    ids <- str_extract_all(button, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
@@ -269,7 +283,7 @@ server <- function(input, output, session){
    #update the buttons
    updateTextInput(
     session = session,
-    inputId = "buttons",
+    inputId = "Buttons",
     value =  new_button
    )
   data
@@ -278,7 +292,7 @@ server <- function(input, output, session){
 # Create a vector to store used numbers
  usedNumbers <- function() {
   # Extract numbers between slashes
-  numbers <- sub(".*/(\\d+)/.*", "\\1", registrationData()$reg)
+  numbers <- sub(".*/(\\d+)/.*", "\\1", registrationData()$Reg)
   numbers <- as.numeric(numbers)
   numbers
  }
@@ -291,7 +305,7 @@ server <- function(input, output, session){
              keepVisible = TRUE,
              .options = myToastOptions )
   } else {
-   code <- isolate(input$codeInput)
+   code <- isolate(input$Code)
    date <-Sys.time()
    year <- format(date, "%Y")
    # Generate a unique 4-digit number
@@ -299,22 +313,22 @@ server <- function(input, output, session){
    # Update the generatedNumber reactive value
    generatedNumber(num)
    reg <- paste0(code, "/", num, "/", year)
-   updateTextInput(session, "regInput", value = reg)
+   updateTextInput(session, "Reg", value = reg)
   }
  }
  
- observeEvent(input$codeInput, {
+ observeEvent(input$Code, {
   if (!is.null(code) && !is.null(date) && input$editmode == 0) {
    new_reg()
   } else if (!is.null(code) && !is.null(date) && input$editmode == 1){
    #image to delete
-   string <- input$regInput
+   string <- input$Reg
    #replacing string
-   replacement <- input$codeInput
+   replacement <- input$Code
    # Replace characters before the first slash with the new value
    result <- sub("^[^/]+", replacement, string)
    #update the regInput 
-   updateTextInput(session = session, inputId = "regInput",
+   updateTextInput(session = session, inputId = "Reg",
                    value = result
    )
   }
@@ -324,7 +338,7 @@ server <- function(input, output, session){
  observeEvent(input$registerButton, {
   photo <- isolate(input$photoInput)
   # Check if the ID input has 8 characters
-  if (nchar(input$IdInput) != 8 || is.na(input$IdInput)) {
+  if (nchar(input$ID) != 8 || is.na(input$ID)) {
    showToast("error",
              "ID should be 8 characters!",
              .options = myToastOptions )
@@ -332,7 +346,7 @@ server <- function(input, output, session){
    return()
   }
   # Check if the name input is empty
-  if (is.null(input$nameInput) || input$nameInput == "") {
+  if (is.null(input$Name) || input$Name == "") {
    showToast("info",
              "Enter Name!",
              .options = myToastOptions ) 
@@ -340,9 +354,9 @@ server <- function(input, output, session){
    return()
   }
   # Check if the reg input is empty
-  if (is.null(input$regInput) || input$regInput == "") {
+  if (is.null(input$Reg) || input$Reg == "") {
    showToast("info",
-             "Refresh RegInput!",
+             "Refresh Registration number field!",
              .options = myToastOptions )
    resetLoadingButton("registerButton")
    return()
@@ -357,7 +371,7 @@ server <- function(input, output, session){
   }
   #ensure no duplicates for ID
   # Check if the entered ID already exists in the column
-  if(input$IdInput %in%registrationData()$ID && input$editmode == 0) {
+  if(input$ID %in%registrationData()$ID && input$editmode == 0) {
    showToast("error",
              "ID Number Exists!",
              .options = myToastOptions )
@@ -388,21 +402,21 @@ server <- function(input, output, session){
   saveData(formData())
   # Get the file extension of the uploaded photo
   extension <- tools::file_ext(photo$name) 
-  # Generate a unique filename using the regInput value and file extension
+  # Generate a unique filename using the Reg value and file extension
   filename <- paste0(generatedNumber(), ".", extension)
   # Move the uploaded photo to the desired directory and rename it
   file.rename(photo$datapath, paste0("data/images/",filename))
   # Clear the input fields
-  updateTextInput(session, "nameInput", value = "")
-  updateNumericInput(session, "IdInput", value = "")
-  updateSelectInput(session, "genderInput", selected = NULL)
+  updateTextInput(session, "Name", value = "")
+  updateNumericInput(session, "ID", value = "")
+  updateSelectInput(session, "Gender", selected = NULL)
   updateTextInput(session, "toggle", value = "0")
   new_reg()
   #update choices
   updateSelectizeInput(
    session = session,
    inputId = "reg",
-   choices = registrationData()$reg,
+   choices = registrationData()$Reg,
    selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
@@ -411,7 +425,7 @@ server <- function(input, output, session){
   updateSelectizeInput(
    session = session,
    inputId = "student_reg",
-   choices = registrationData()$reg,
+   choices = registrationData()$Reg,
    selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
@@ -421,7 +435,6 @@ server <- function(input, output, session){
    registrationData(),server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
-     list(targets = c(5,6,9), visible = FALSE),# column you want to hide
      list(targets = c(1,2,5,6,7), orderable = FALSE)#Disable sorting
     )
    )
@@ -438,10 +451,8 @@ server <- function(input, output, session){
    selectedRow <- as.numeric(strsplit(input$editreg_button, "_")[[1]][2])
    search_string <- paste0("editreg_ ",selectedRow)
    row <- registrationData()[grepl(search_string,
-                                           registrationData()$buttons), ]
-   originalFile <- row$filename 
-   print(row)
-   print(originalFile)
+                                           registrationData()$Buttons), ]
+   originalFile <- row$Filename 
    # Source directory and file name
    source_dir <- "registered_students"
    fileName <- gsub("registered_students/", "", originalFile)
@@ -449,7 +460,7 @@ server <- function(input, output, session){
    # Destination directory
    dest_dir <- "edited_results"
    #image to delete
-   string <- row$reg
+   string <- row$Reg
    # Extract the number between slashes
    number <- str_extract(string, "(?<=/)[0-9]+(?=/)")
    # Get the list of image available
@@ -461,6 +472,7 @@ server <- function(input, output, session){
    #remove existing photo
    file.remove(image)
    # Create the full paths
+   row <- subset(row, select = -Filename)
    write.csv(
     x = row,
     file = file.path(dest_dir, fileName),
@@ -468,10 +480,15 @@ server <- function(input, output, session){
    )
    #create new file
    newFile <- data.frame(
-    nameInput = input$nameInput, genderInput = input$genderInput,
-    IdInput = input$IdInput, regInput = input$regInput,	
-     codeInput = input$codeInput, courseInput = input$courseInput,	
-    dateInput = row$date, buttons = row$buttons
+    Name = input$Name, 
+    Gender = input$Gender,
+    ID = input$ID, 
+    Reg = input$Reg,	
+     Code = input$Code, 
+    Course = input$Course,	
+    Date = row$Date, 
+    Year = row$Year,
+    Buttons = row$Buttons
     )
    # Write the file to the local system
    write.csv(
@@ -486,21 +503,20 @@ server <- function(input, output, session){
    # Move the uploaded photo to the desired directory and rename it
    file.rename(photo$datapath, paste0("data/images/",filenames))
    #show new data frame
-   output$registrationTable <- renderDataTable(
-    registrationData(),server = TRUE, escape = FALSE, selection = "none",
-    options = list(
-     columnDefs = list(
-      list(targets = c(5,6,9), visible = FALSE),# column you want to hide
-      list(targets = c(1,2,5,6,7), orderable = FALSE)#Disable sorting
-     )
+    output$registrationTable <- renderDataTable(
+   registrationData(),server = TRUE, escape = FALSE, selection = "none",
+   options = list(
+    columnDefs = list(
+     list(targets = c(1,2,5,6,7), orderable = FALSE)#Disable sorting
     )
    )
+  )
    # Clear the input fields
-   updateTextInput(session, "nameInput", value = "")
-   updateNumericInput(session, "IdInput", value = "")
-   updateSelectInput(session, "genderInput", selected = NULL)
+   updateTextInput(session, "Name", value = "")
+   updateNumericInput(session, "ID", value = "")
+   updateSelectInput(session, "Gender", selected = NULL)
    updateTextInput(session, "toggle", value = "0")
-   reset("dateInput")
+   reset("Date")
    reset("photoInput")
    new_reg()
    resetLoadingButton("registerButton")
@@ -509,6 +525,7 @@ server <- function(input, output, session){
     "success", "Student Edited!", .options = myToastOptions
    )
    hideToast(animate = TRUE, session = session)
+   shinyjqui::jqui_hide("#reset_button", effect = "fade")
    return()
   }
  })
@@ -521,7 +538,6 @@ server <- function(input, output, session){
   registrationData(),server = TRUE, escape = FALSE, selection = "none",
   options = list(
    columnDefs = list(
-    list(targets = c(5,6,9), visible = FALSE),# column you want to hide
     list(targets = c(1,2,5,6,7), orderable = FALSE)#Disable sorting
    )
   )
@@ -536,7 +552,7 @@ server <- function(input, output, session){
  updateSelectizeInput(
   session = session,
   inputId = "reg",
-  choices = registrationData()$reg,
+  choices = registrationData()$Reg,
   selected = "",
   server = TRUE,
   options = list(maxOptions = 3)
@@ -545,7 +561,7 @@ server <- function(input, output, session){
  updateSelectizeInput(
   session = session,
   inputId = "student_reg",
-  choices = registrationData()$reg,
+  choices = registrationData()$Reg,
   selected = "",
   server = TRUE,
   options = list(maxOptions = 3)
@@ -582,7 +598,9 @@ server <- function(input, output, session){
    updateTextInput(
     session = session,
     inputId = "actions",
-    value = '<button id="approve_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-check-to-slot" role="presentation" aria-label="check-to-slot icon"></i></button><button id="delete_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button><button id="edit_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})">  <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>'
+    value = '<button id="approve_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" title="Approve Mark">  <i class="fas fa-check-to-slot" role="presentation" aria-label="check-to-slot icon"></i></button>
+    <button id="delete_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})" title="Delete Mark">  <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
+    <button id="edit_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})" title="Edit Mark">  <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>'
    )
    data
   } else if (length(released_files) == 1){
@@ -591,7 +609,7 @@ server <- function(input, output, session){
    released_data <- as.data.frame(released_data)
    #change to 1 decimal place
    released_data$score <- as.numeric(released_data$score) |> round(0)
-   released_data$Filename <- released_files
+   released_data$filename <- released_files
    #data set
    data <- released_data
    data
@@ -634,7 +652,7 @@ server <- function(input, output, session){
    released_data <- as.data.frame(released_data)
    #change to 1 decimal place
    released_data$score <- as.numeric(released_data$score) |> round(0)
-   released_data$Filename <-  rev(released_files)
+   released_data$filename <-  rev(released_files)
    #combine the two sets of data
    data <- released_data |> arrange(desc(time))
    data
@@ -718,7 +736,7 @@ server <- function(input, output, session){
    updateSelectizeInput(
     session = session,
     inputId = "reg",
-    choices = registrationData()$reg,
+    choices = registrationData()$Reg,
     server = TRUE,
     selected = "",
     options = list(maxOptions = 3)
@@ -748,7 +766,7 @@ server <- function(input, output, session){
             && input$grade != "" && input$id == 1 ) {
    row <- loadData()[loadData()$reg %in%input$reg &
                       loadData()$code %in%input$code, ] 
-   originalFile <- row$Filename 
+   originalFile <- row$filename 
    # Source directory and file name
    source_dir <- "released_results"
    fileName <- gsub("released_results/", "", originalFile)
@@ -767,7 +785,7 @@ server <- function(input, output, session){
     score = input$score,	grade = input$grade,	time = row$time, 
     actions = row$actions, lecturer = row$lecturer
    )
-   fileName <- gsub("released_results/", "", row$Filename)
+   fileName <- gsub("released_results/", "", row$filename)
    # Write the file to the local system
    write.csv(
     x = newFile,
@@ -793,7 +811,7 @@ server <- function(input, output, session){
    updateSelectizeInput(
     session = session,
     inputId = "reg",
-    choices = registrationData()$reg,
+    choices = registrationData()$Reg,
     server = TRUE,
     selected = "",
     options = list(maxOptions = 3)
@@ -822,8 +840,8 @@ server <- function(input, output, session){
  #update uneditable fields from database
  observe({
   x <- input$reg
-  name_df <- registrationData() |> filter(reg %in% x) %>% 
-   select(name)
+  name_df <- registrationData() |> filter(Reg %in% x) %>% 
+   select(Name)
   name <- name_df[[1]]
   updateTextInput(
    session = session,
@@ -854,7 +872,7 @@ server <- function(input, output, session){
    inputId = "grade",
    value = grade
   )
-  code <- input$codeInput
+  code <- input$Code
   # define course
   course <- reactive({
    if(code == "X74") {
@@ -867,7 +885,7 @@ server <- function(input, output, session){
   })
   updateTextInput(
    session = session,
-   inputId = "courseInput",
+   inputId = "Course",
    value = course()
   )
   data_entered <- c(input$reg, input$code)
@@ -943,8 +961,8 @@ server <- function(input, output, session){
    selectedRow <- as.numeric(strsplit(input$deletereg_button, "_")[[1]][2])
    search_string <- paste0("deletereg_ ",selectedRow)
    filtered_df <- registrationData()[grepl(search_string,
-                                           registrationData()$buttons), ]
-   filename_delete <- filtered_df$filename
+                                           registrationData()$Buttons), ]
+   filename_delete <- filtered_df$Filename
    #image to delete
    string <- filtered_df$reg
    # Extract the number between slashes
@@ -967,15 +985,15 @@ server <- function(input, output, session){
    updateSelectizeInput(
     session = session,
     inputId = "reg",
-    choices = registrationData()$reg,
+    choices = registrationData()$Reg,
     server = TRUE,
     selected = "",
     options = list(maxOptions = 3)
    )
    updateSelectizeInput(
     session = session,
-    inputId = "regInput",
-    choices = registrationData()$reg,
+    inputId = "student_reg",
+    choices = registrationData()$Reg,
     server = TRUE,
     selected = "",
     options = list(maxOptions = 3)
@@ -984,7 +1002,6 @@ server <- function(input, output, session){
     registrationData(),server = TRUE, escape = FALSE, selection = "none",
     options = list(
      columnDefs = list(
-      list(targets = c(5,6,9), visible = FALSE),# column you want to hide
       list(targets = c(1,2,5,6,7), orderable = FALSE)#Disable sorting
      )
     )
@@ -1002,7 +1019,7 @@ server <- function(input, output, session){
   search_string <- paste0("approve_ ",selectedRow)
   filtered_df <- loadData()[grepl(search_string,
                                   loadData()$actions), ]
-  filename_approve <- filtered_df$Filename
+  filename_approve <- filtered_df$filename
   file <- read.csv(filename_approve, stringsAsFactors = FALSE)
   # change buttons
   file$actions <- paste0(
@@ -1073,13 +1090,53 @@ server <- function(input, output, session){
    value =  filtered_df$score
   )
  })
+ #promote a student
+ observeEvent(input$year_button, {
+  selectedRow <- as.numeric(strsplit(input$year_button, "_")[[1]][2])
+  search_string <- paste0("year_ ",selectedRow)
+  filtered_df <- registrationData()[grepl(search_string,
+                                          registrationData()$Buttons), ]
+  current_year <- as.numeric(filtered_df$Year)
+  if(current_year < 4) {
+   new_year <- current_year + 1
+   filtered_df$Year <- new_year
+   originalFile <- filtered_df$Filename 
+   # Source directory and file name
+   fileName <- gsub("registered_students/", "", originalFile)
+   file_name <- fileName 
+   # Write the file to the local system
+   data <- subset(filtered_df, select = -Filename)
+   write.csv(x = data,
+    file = file.path(registeredDir, file_name),
+    row.names = FALSE, quote = TRUE
+   )
+   # Render the registration data table
+   output$registrationTable <- renderDataTable(
+    registrationData(),server = TRUE, escape = FALSE, selection = "none",
+    options = list(
+     columnDefs = list(
+      list(targets = c(1,2,5,6,7), orderable = FALSE)#Disable sorting
+     )
+    )
+   )
+  showToast(
+   "success", "Student promoted!",
+   .options = myToastOptions
+  )
+  }else{
+   showToast(
+    "error", "Student:Final year!",
+    .options = myToastOptions
+   )
+  }
+ })
  #delete a response file
  observeEvent(input$delete_button, {
   selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
   search_string <- paste0("delete_ ",selectedRow)
   filtered_df <- loadData()[grepl(search_string,
                                   loadData()$actions), ]
-  filename_delete <- filtered_df$Filename
+  filename_delete <- filtered_df$filename
   # Source directory and file name
   source_dir <- "released_results"
   fileName <- gsub("released_results/", "", filename_delete)
@@ -1126,7 +1183,7 @@ server <- function(input, output, session){
  })
  #STUDENT TAB
  observeEvent(input$student_reg, {
-  student_data <- registrationData() |> filter(reg %in% input$student_reg)
+  student_data <- registrationData() |> filter(Reg %in% input$student_reg)
   t_b <- loadData()[grepl("approve1_1", loadData()$actions), ]
   t_b <- t_b |> filter(reg %in% input$student_reg) |>
    select(code, course, grade) |>
@@ -1155,6 +1212,7 @@ server <- function(input, output, session){
  })
  #edit a student registration file
  observeEvent(input$editreg_button,{
+  shinyjqui::jqui_show("#reset_button", effect = "fade")
   showToast("info", "Edit mode!", keepVisible = TRUE,
             .options = myToastOptions )
   updateTextInput( session = session, inputId = "editmode", value = 1)
@@ -1163,25 +1221,25 @@ server <- function(input, output, session){
   selectedRow <- as.numeric(strsplit(input$editreg_button, "_")[[1]][2])
   search_string <- paste0("editreg_ ",selectedRow)
   filtered_df <- registrationData()[grepl(search_string,
-                                          registrationData()$buttons), ]
+                                          registrationData()$Buttons), ]
   #update fields
-  updateTextInput(session = session, inputId = "nameInput",
-                  value = filtered_df$name
+  updateTextInput(session = session, inputId = "Name",
+                  value = filtered_df$Name
                   )
-  updateSelectizeInput(session = session, inputId = "genderInput",
-                        selected =  filtered_df$gender
+  updateSelectizeInput(session = session, inputId = "Gender",
+                        selected =  filtered_df$Gender
                         )
-  updateTextInput(session = session, inputId = "IdInput",
+  updateTextInput(session = session, inputId = "ID",
                   value = filtered_df$ID
                   )
-  updateTextInput(session = session, inputId = "dateInput",
-                  value = filtered_df$date
+  updateTextInput(session = session, inputId = "Date",
+                  value = filtered_df$Date
                   )
-  updateSelectizeInput(session = session, inputId = "codeInput",
-                       selected =  filtered_df$code
+  updateSelectizeInput(session = session, inputId = "Code",
+                       selected =  filtered_df$Code
                        )
-  updateTextInput(session = session, inputId = "regInput",
-                  value = filtered_df$reg
+  updateTextInput(session = session, inputId = "Reg",
+                  value = filtered_df$Reg
                   )
   
  })

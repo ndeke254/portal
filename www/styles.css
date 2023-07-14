@@ -1,5 +1,6 @@
 .shiny-split-layout>div {
     overflow: unset;
+    vertical-align: bottom;
 }
 .shiny-split-layout {
     margin-top: 110px;
@@ -57,13 +58,13 @@ label {
     color: #ffffff;
     border: 1px solid #c9c9c9;
     box-shadow: 0px 0px 10px 0px rgb(0 0 0 / 77%);}
-
+    
 .navbar.navbar-default {
-    box-shadow: 0px 0px 10px 2px #00000080;
-    background-image: linear-gradient(360deg, #e9ecef, #99860094);
+    box-shadow: 0px 0px 6px 0px #000000;
+    background-image: linear-gradient(264deg, #bed1e5, #ffffff94);
 }
 img {
- width: 100px;
+ width: 75px;
 }
 .navbar:not(.fixed-bottom):not(.navbar-fixed-bottom):not
 (.navbar-fixed-bottom) {
@@ -89,7 +90,7 @@ img {
 .navbar-light .navbar-nav .show>.nav-link, .navbar-light .navbar-nav .in>.nav-link, .navbar-light .navbar-nav .nav-tabs>li.show>a, .navbar-light .navbar-nav .nav-tabs>li.in>a, .navbar-light .navbar-nav .nav-pills>li.show>a, .navbar-light .navbar-nav .nav-pills>li.in>a, .navbar.navbar-default .navbar-nav .show>.nav-link, .navbar.navbar-default .navbar-nav .in>.nav-link, .navbar.navbar-default .navbar-nav .nav-tabs>li.show>a, .navbar.navbar-default .navbar-nav .nav-tabs>li.in>a, .navbar.navbar-default .navbar-nav .nav-pills>li.show>a, .navbar.navbar-default .navbar-nav .nav-pills>li.in>a, .navbar-light ul.nav.navbar-nav>li.show>a, .navbar-light ul.nav.navbar-nav>li.in>a, .navbar.navbar-default ul.nav.navbar-nav>li.show>a, .navbar.navbar-default ul.nav.navbar-nav>li.in>a, .navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-tabs>li.active>a, .navbar-light .navbar-nav .nav-pills>li.active>a, .navbar.navbar-default .navbar-nav .active>.nav-link, .navbar.navbar-default .navbar-nav .nav-tabs>li.active>a, .navbar.navbar-default .navbar-nav .nav-pills>li.active>a, .navbar-light ul.nav.navbar-nav>li.active>a, .navbar.navbar-default ul.nav.navbar-nav>li.active>a, .navbar-light .navbar-nav .nav-link.show, .navbar-light .navbar-nav .nav-link.in, .navbar-light .navbar-nav .nav-tabs>li>a.show, .navbar-light .navbar-nav .nav-tabs>li>a.in, .navbar-light .navbar-nav .nav-pills>li>a.show, .navbar-light .navbar-nav .nav-pills>li>a.in, .navbar.navbar-default .navbar-nav .nav-link.show, .navbar.navbar-default .navbar-nav .nav-link.in, .navbar.navbar-default .navbar-nav .nav-tabs>li>a.show, .navbar.navbar-default .navbar-nav .nav-tabs>li>a.in, .navbar.navbar-default .navbar-nav .nav-pills>li>a.show, .navbar.navbar-default .navbar-nav .nav-pills>li>a.in, .navbar-light ul.nav.navbar-nav>li>a.show, .navbar-light ul.nav.navbar-nav>li>a.in, .navbar.navbar-default ul.nav.navbar-nav>li>a.show, .navbar.navbar-default ul.nav.navbar-nav>li>a.in, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-tabs>li>a.active, .navbar-light .navbar-nav .nav-pills>li>a.active, .navbar.navbar-default .navbar-nav .nav-link.active, .navbar.navbar-default .navbar-nav .nav-tabs>li>a.active, .navbar.navbar-default .navbar-nav .nav-pills>li>a.active, .navbar-light ul.nav.navbar-nav>li>a.active, .navbar.navbar-default ul.nav.navbar-nav>li>a.active {
     color: #000;
     border: 1px solid #959595;
-    box-shadow: 0px 1px 4px 0px #4c4949;
+    box-shadow: 0px 1px 3px 0px #00000087;
 }
 .selectize-control.single .selectize-input:after {
  border-style: hidden;
@@ -272,9 +273,6 @@ button#registerButton {
     background-color: #c8cfd6;
     border-color: #c1c9d0;
     box-shadow: 0 0 0 0.0rem rgb(189 192 196 / 50%);
-}
-label#student_reg-label {
-    margin-top: 110px;
 }
 div#student_marks {
  margin-bottom: 110px;

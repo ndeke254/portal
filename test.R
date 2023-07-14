@@ -1,22 +1,15 @@
 library(shiny)
-library(shinydashboard)
 
-ui <- dashboardPage(
- dashboardHeader(
-  title = "My Shiny App",
-  tags$li(class = "dropdown",
-          tags$a(href = "#",
-                 tags$img(src = "logo.png",
-                          height = "30px",
-                          style = "margin-top: -5px;")
-          )
-  ),
-  tags$style(HTML('.skin-blue .main-header .logo { padding-top: 0px; }'))
- ),
- dashboardSidebar(),
- dashboardBody()
+ui <- navbarPage(
+ title = "Hover Text Example",
+ tabPanel(
+  "Home",
+  actionButton("myButton", "Click Me", title = "Hover Text: Perform an Action")
+ )
 )
 
-server <- function(input, output) { }
+server <- function(input, output) {
+ # Add your server logic here
+}
 
 shinyApp(ui, server)
