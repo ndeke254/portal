@@ -1,0 +1,239 @@
+---
+title: ""
+output: 
+ html_document
+params:
+ data1: NA
+ data2: NA
+ name: NA
+ reg: NA
+ course: NA
+ date: NA
+ year: NA
+ id: NA
+ ddate: NA
+ comment: NA
+---
+
+```{=html}
+<style type="text/css">
+  body{
+  font-family: candara;
+  font-size: 12px;
+}
+  h1{
+  font-size: 17px;
+  font-weight: 600;
+}
+.column-container {
+  display: flex;
+}
+
+.column {
+  flex: 1; /* Equal width columns */
+  padding: 0px;
+}
+.table {
+  border-collapse: collapse;
+  border: none;
+  margin-bottom: 5px;
+}
+.h1, .h2, .h3, h1, h2, h3 {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.table {
+    margin-bottom: 0px;
+}
+p {
+    margin: 0px 0 5px;
+}
+.table th, .table td {
+  border: none;
+}
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+    border-top: 0px solid #fff;
+}
+hr {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    border: 0;
+    border-top: 0.5px solid #0000001a;
+}
+.table>thead>tr>th {
+    vertical-align: bottom;
+    border-bottom: 1px solid #0000;
+}
+.stamp-container {
+  position: absolute;
+  margin-top: -190px;
+  margin-left: 450px;
+}
+.sign-container {
+  position: absolute;
+  margin-top: -170px;
+  margin-left: 390px;
+}
+</style>
+```
+```{r, echo=FALSE, out.width = "10%", fig.align="center",message=FALSE}
+##First year
+knitr::include_graphics("www/logo.png")
+```
+
+<div style="text-align: center; font-family: candara; font-size: 12px;">
+
+<h1>UNIVERSITY OF KITUI</h1>
+
+<p>SCHOOL OF ECONOMICS</p>
+
+<p>Department of Economics and Development Studies</p>
+
+<hr>
+
+<p>
+
+<u><strong>PROVISIONAL TRANSCRIPT</strong></u>
+
+<p>
+
+</div>
+
+::: {.column-container style="text-align: center; font-family: candara; font-size: 12px;"}
+::: column
+<p><strong>Name:</strong> `r params$name`</p>
+
+<p><strong>Course:</strong> `r params$course`</p>
+
+<p><strong>Year of Study:</strong> First Year</p>
+:::
+
+::: column
+<p><strong>Registration No:</strong> `r params$reg`</p>
+
+<p><strong>Date of Registration:</strong> `r params$date`</p>
+
+<p><strong>ID:</strong> `r params$id`</p>
+:::
+:::
+
+```{r, layout="l-body-outset", echo=FALSE, warning=FALSE ,message=FALSE}
+library(knitr)
+library(kableExtra)
+data_table <- params$data1
+kableExtra::kable(data_table, "simple",col.names = toupper(colnames(data_table))) 
+```
+
+**COMMENT**
+
+<p>PASS: Promoted to the next Year</p>
+
+**The Grading Key**
+
+A = 70% - 100% - EXCELLENT
+
+B = 60% - 70% - GOOD
+
+C = 50% - 60% - SATISFACTORY
+
+D = 40% - 50% - PASS
+
+E = 30% - 40% - FAIL                                                                                                                           **Mr. Jefferson M. Ndeke**
+
+\* - PASS AFTER RESIT                                                                                                                     **Director, School of Economics**
+
+This is an **ONLINE PROVISIONAL TRANSCRIPT** issued on behalf of the University and it is **NOT** valid without the **OFFICIAL STAMP**.
+
+::: {style="text-align: center; font-family: candara; font-size: 12px;"}
+<p><strong>Date of issue:</strong> `r params$ddate`</p>
+:::
+
+::: stamp-container
+![](www/stamp.png){.stamp-image alt="Stamp Image" width="130"}
+:::
+
+::: sign-container
+![](www/signature.png){.sign-image alt="Sign Image" width="130"}
+:::
+
+\newpage
+
+```{r, echo=FALSE, out.width = "10%", fig.align="center",message=FALSE}
+##Second year
+knitr::include_graphics("www/logo.png")
+```
+
+<div style="text-align: center; font-family: candara; font-size: 12px;">
+
+<h1>UNIVERSITY OF KITUI</h1>
+
+<p>SCHOOL OF ECONOMICS</p>
+
+<p>Department of Economics and Development Studies</p>
+
+<hr>
+
+<p>
+
+<u><strong>PROVISIONAL TRANSCRIPT</strong></u>
+
+<p>
+
+</div>
+
+::: {.column-container style="text-align: center; font-family: candara; font-size: 12px;"}
+::: column
+<p><strong>Name:</strong> `r params$name`</p>
+
+<p><strong>Course:</strong> `r params$course`</p>
+
+<p><strong>Year of Study:</strong> Second Year</p>
+:::
+
+::: column
+<p><strong>Registration No:</strong> `r params$reg`</p>
+
+<p><strong>Date of Registration:</strong> `r params$date`</p>
+
+<p><strong>ID:</strong> `r params$id`</p>
+:::
+:::
+
+```{r, layout="l-body-outset", echo=FALSE, warning=FALSE ,message=FALSE}
+library(knitr)
+library(kableExtra)
+data_table <- params$data2
+kableExtra::kable(data_table, "simple",col.names = toupper(colnames(data_table))) 
+```
+
+**COMMENT**
+
+<p>`r params$comment`</p>
+
+**The Grading Key**
+
+A = 70% - 100% - EXCELLENT
+
+B = 60% - 70% - GOOD
+
+C = 50% - 60% - SATISFACTORY
+
+D = 40% - 50% - PASS
+
+E = 30% - 40% - FAIL                                                                                                                           **Mr. Jefferson M. Ndeke**
+
+\* - PASS AFTER RESIT                                                                                                                     **Director, School of Economics**
+
+This is an **ONLINE PROVISIONAL TRANSCRIPT** issued on behalf of the University and it is **NOT** valid without the **OFFICIAL STAMP**.
+
+::: {style="text-align: center; font-family: candara; font-size: 12px;"}
+<p><strong>Date of issue:</strong> `r params$ddate`</p>
+:::
+
+::: stamp-container
+![](www/stamp.png){.stamp-image alt="Stamp Image" width="130"}
+:::
+
+::: sign-container
+![](www/signature.png){.sign-image alt="Sign Image" width="130"}
+:::
