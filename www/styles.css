@@ -3,7 +3,7 @@
     vertical-align: bottom;
 }
 .shiny-split-layout {
-    margin-top: 110px;
+    margin-top: 5px;
 }
 .navbar-brand {
   width: 15px;
@@ -283,10 +283,91 @@ div#student_marks {
  justify-content: center;
 }
 div#student_name {
+ margin-top: 120px;
+ font-weight: 700;
+ font-size: 15px;
  text-align: center;
  text-transform: uppercase;
 }
 div#student_course {
+ font-weight: 700;
+ font-size: 15px;
+ margin-bottom: -120px;
  text-align: center;
  text-transform: uppercase;
+}
+span#sf-loading-button-registerButton {
+    padding-left: 100px;
+}
+.modal-header {
+ padding-bottom: 10px;
+ padding-left: 10px;
+ justify-content: center;
+ border-top-left-radius: calc(0.3rem - -10px);
+ border-top-right-radius: calc(0.3rem - -10px);
+}
+.modal.fade .modal-dialog {
+    transition: transform 0.15s ease-out;
+}
+.modal-content {
+ background-color: #e9ecef;
+ border-radius: 1.0rem;
+ border: 0px solid rgb(0 0 0 / 0%);
+ box-shadow: #000000a3 0px 0px 11px;
+}
+h4, h5, h6 {
+    text-align: center;
+    margin-top: 0rem;
+    font-size: 1.2rem;
+}
+.modal-footer>* {
+ padding-right: 0.25rem;
+}
+button#reset {
+    border: 1px solid #bdbdbd;
+    box-shadow: 0px 0px 6px #2125299e;
+}
+div#exit_button {
+    border-radius: 5px;
+    border: 1px solid #cbcbcb;
+    box-shadow: 0px 0px 6px 0px #2125299e;
+    margin-left: 89px;
+}
+h1, .h1 {
+    text-align: center;
+    font-size: 15px;
+}
+.bttn-unite.bttn-default {
+    border-color: #7c7e81;
+    color: #000000;
+}
+ .bttn-unite.bttn-md {
+    font-size: 13px;
+    border-radius: 5px;
+    font-family: inherit;
+    padding: 5px 12px;
+    box-shadow: 0px 0px 5px #00000091;
+}
+.bttn-unite.bttn-default:focus, .bttn-unite.bttn-default:hover {
+    background: #d6e3ff;
+    color: #ffffff;
+}
+.bttn-unite.bttn-default:before{
+    background: #7583a1;
+}
+.bttn-unite.bttn-default:after {
+     background: #7583a1;
+}
+
+.tabbable {
+    padding-top: 110px;
+}
+a#download {
+    margin-left: 130px;
+    margin-top: -50px;
+    background-color: #007bff;
+}
+.card, .well {
+    background-color: transparent;
+    border: 0px solid rgba(0,0,0,0.125);
 }
