@@ -24,6 +24,7 @@ label {
 }
 .form-control {
  font-size: 13px;
+ border-radius: 0.2rem;
 }
 .btn {
     font-size: 13px;
@@ -169,11 +170,12 @@ input::-webkit-inner-spin-button {
 }
 .table th, .table td {
     vertical-align: top;
-    border-top: 0px solid #c9c9c9;
-    border-left: 0px solid #c9c9c9;
     border-bottom: 1px solid #c9c9c9;
     border-right: 1px solid #c9c9c9;
-
+}
+.table>thead>tr>th {
+    border-top: 1px solid #c9c9c9;
+    border-bottom: 1px solid #c9c9c9;
 }
 hr {
     border-top: 1px solid #c9c9c9;
@@ -370,4 +372,9 @@ a#download {
 .card, .well {
     background-color: transparent;
     border: 0px solid rgba(0,0,0,0.125);
+}
+.small-box {
+    border-radius: 5px;
+    margin-top: 25px;
+    box-shadow: 0 1px 4px 1px rgb(78 74 74);
 }
