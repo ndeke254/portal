@@ -36,7 +36,7 @@ label {
 .btn-primary.disabled, .btn-primary:disabled {
     color: #000;
     border: 1px solid #c9c9c9;
-    background-color: ##e9ecef;
+    background-color: #e9ecef;
     box-shadow: 0px 0px 10px 0px rgb(0 0 0 / 37%);
 }
 .form-control:focus {
@@ -67,21 +67,16 @@ label {
 img {
  width: 75px;
 }
-.navbar:not(.fixed-bottom):not(.navbar-fixed-bottom):not
-(.navbar-fixed-bottom) {
+.navbar:not(.fixed-bottom):not(.navbar-fixed-bottom):not(.navbar-fixed-bottom) {
     padding: 0;
     margin-bottom: -16px;
 }
-@media (min-width: 576px)
-.nav:not(.nav-hidden):not(.nav-stacked):not(.flex-column) {
-    float: none !important;
-    height: 12px;
-}
+
 .navbar-light .navbar-nav .nav-link, .navbar-light .navbar-nav .nav-tabs>li>a, .navbar-light .navbar-nav .nav-pills>li>a, .navbar.navbar-default .navbar-nav .nav-link, .navbar.navbar-default .navbar-nav .nav-tabs>li>a, .navbar.navbar-default .navbar-nav .nav-pills>li>a, .navbar-light ul.nav.navbar-nav>li>a, .navbar.navbar-default ul.nav.navbar-nav>li>a {
     color: rgba(0,0,0,0.5);
     font-size: 15px;
     font-weight: 600;
-    background-color: whitesmoke;
+    background-color: whitesmoke; 
     border-radius: 10px;
     margin-left: 10px;
     padding-right: 0.5rem;
@@ -102,7 +97,6 @@ img {
     opacity: 1;
 }
 .toast {
-    -webkit-flex-basis: 350px;
     max-width: 350px;
     font-size: .875rem;
     background-clip: padding-box;
@@ -242,7 +236,7 @@ table.dataTable.table-hover>tbody>tr:hover>* {
     box-shadow: 0 0 0 0 rgb(38 143 255);
 }
 .btn-primary:not(:disabled):not(.disabled):active, .btn-primary:not(:disabled):not(.disabled).active, .show>.btn-primary.dropdown-toggle, .in>.btn-primary.dropdown-toggle {
-    color: ##007bff;
+    color: #007bff;
 }
 .btn-primary:not(:disabled):not(.disabled):active:focus, .btn-primary:not(:disabled):not(.disabled).active:focus, .show>.btn-primary.dropdown-toggle:focus, .in>.btn-primary.dropdown-toggle:focus {
     box-shadow: 0 0 0 0 rgba(38,143,255,0.5);
@@ -377,4 +371,46 @@ a#download {
     border-radius: 5px;
     margin-top: 25px;
     box-shadow: 0 1px 4px 1px rgb(78 74 74);
+}
+small, .small {
+    font-size: 100%;
+    font-weight: 700;
+}
+.flipdown.flipdown__theme-youkous {
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: bolder;
+}
+.flipdown.flipdown__theme-youkous .rotor-group-heading:before {
+    color: #0000009e;
+}
+.flipdown.flipdown__theme-youkous .rotor, .flipdown.flipdown__theme-youkous .rotor-leaf-front, .flipdown.flipdown__theme-youkous .rotor-top {
+  color: #000;
+  border-radius: 50px;
+  background-color: #8f8f8f;
+}
+.flipdown.flipdown__theme-youkous .rotor-bottom, .flipdown.flipdown__theme-youkous .rotor-leaf-rear {
+   color: #000;
+  border-radius: 50px;
+  background-color: #bbbbbb;
+}
+.leaflet-right .leaflet-control {
+    margin-right: 80px;
+}
+
+.leaflet-top .leaflet-control {
+    margin-top: 8px;
+}
+.info legend leaflet-control {
+  margin-bottom: 7px;
+  border-bottom: 1px solid #2c2c2c36;
+  
+}
+.flipdown.flipdown__theme-youkous .rotor:after {
+    border-top: solid 2px #cfcfcf;
+}
+.flipdown{
+zoom: 0.38;
+font-size: 20px;
+width: 600px;
 }

@@ -560,6 +560,15 @@ server <- function(input, output, session){
      )
     )
    )
+   output$approved_marks <- DT::renderDataTable(
+    t_b, server = TRUE, escape = FALSE, selection = "none",
+    options = list(
+     columnDefs = list(
+      list(targets = c(10), visible = FALSE),# column you want to hide
+      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+     )
+    )
+   )
    #reset all fields to blank
    #update choices
    updateSelectizeInput(
@@ -629,6 +638,15 @@ server <- function(input, output, session){
    #show new data frame
    output$marks <- DT::renderDataTable(
     loadData(), server = TRUE, escape = FALSE, selection = "none",
+    options = list(
+     columnDefs = list(
+      list(targets = c(10), visible = FALSE),# column you want to hide
+      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+     )
+    )
+   )
+   output$approved_marks <- DT::renderDataTable(
+    t_b, server = TRUE, escape = FALSE, selection = "none",
     options = list(
      columnDefs = list(
       list(targets = c(10), visible = FALSE),# column you want to hide
@@ -759,72 +777,152 @@ server <- function(input, output, session){
    return()
   }
   #output value boxes
-  vb <-  my_valuebox(
-   value = nrow(registrationData())|>
-    prettyNum(big.mark =',', scientific = FALSE),
-   title = "NO.OF STUDENTS",
-   substitle = tagList(HTML("&uarr;"), "25% Since last day"),
-   icon = icon("pencil")
+  current_year <- lubridate::year(Sys.Date())
+  current_date <- format(Sys.Date(), "%d-%m-%Y")
+  previous_year <- current_year - 1
+  previous_day1 <- Sys.Date() - 1
+  previous_day <- format(previous_day1, "%d-%m-%Y")
+  #year
+  n_c <- registrationData()[grepl(current_year, registrationData()$Date), ] |>
+   nrow()
+  n_p <- registrationData()[grepl(previous_year, registrationData()$Date), ] |>
+   nrow()
+  per_n <- (((n_c-n_p)/n_p)*100) |> round(2)
+  #day
+  c_d <- loadData()[grepl(current_date, loadData()$time), ] |>
+   nrow()
+  p_d <- loadData()[grepl(previous_day, loadData()$time), ] |>
+   nrow()
+  per_d <- (((c_d-p_d)/p_d)*100) |> round(2)
+  ####
+  r <- list.files(releasedDir, full.names = TRUE) 
+  if(length(r) > 0){
+  output$registered_no <- renderValueBox({
+   value <- n_c |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(per_n)
+   arrow <- my_symbol(per_n)
+   my_valuebox(value,  
+               title = "NO.OF STUDENTS",
+               subtitle = tagList(HTML(arrow), paste0(abs(per_n),"% since last year")),
+               icon = icon("pencil"),
+               color = color
    )
-  output$registered_no <- renderValueBox(vb)
+  })
   ###
-  vb1 <-  my_valuebox(
-   value = nrow(loadData())|>
-    prettyNum(big.mark =',', scientific = FALSE),
-   title = "RELEASED RESULTS",
-   subtitle = tagList(HTML("&uarr;"), "25% Since last day"),
-   icon = icon("pencil")
-  )
-  output$available_marks <- renderValueBox(vb1)
+  output$available_marks <- renderValueBox({
+   value <- c_d |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(per_d)
+   arrow <- my_symbol(per_d)
+   my_valuebox(value,  
+               title = "RELEASED RESULTS",
+               subtitle = tagList(HTML(arrow), paste0(abs(per_d),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
   ###
   registered_students <- list.files(registered_unitsDir, full.names = TRUE)
   reg_all <- lapply(registered_students, read.csv, stringsAsFactors = FALSE)
   combined_df <- do.call(rbind, reg_all)
-  miss_combined_df <- combined_df |> filter(Status %in% "REGISTERED")
-  n <- nrow(miss_combined_df)
-  vb2 <-  my_valuebox(
-   value = n |>
-    prettyNum(big.mark =',', scientific = FALSE),
-   title = "MISSING MARKS",
-   subtitle = tagList(HTML("&uarr;"), "25% Since last day"),
-   icon = icon("pencil")
-  )
-  output$missing_marks <- renderValueBox(vb2)
+  miss_today <- combined_df[grepl("REGISTERED", combined_df$Status), ] |>
+   filter(Date %in% current_date) |> nrow()
+  miss_yester <- combined_df[grepl("REGISTERED", combined_df$Status), ] |>
+   filter(Date %in% previous_day) |> nrow()
+  miss_per <- (((miss_today-miss_yester)/miss_yester)*100) |> round(2)
+  output$missing_marks <- renderValueBox({
+   value = miss_today |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(miss_per)
+   arrow <- my_symbol(miss_per)
+   my_valuebox(value,  
+               title = "MISSING MARKS",
+               subtitle = tagList(HTML(arrow), paste0(abs(miss_per),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
   ####
-  fail_combined_df <- combined_df |> filter(Status %in% "FAILED")
-  n1 <- nrow(fail_combined_df)
-  vb5 <-  my_valuebox(
-   value = n1 |>
-    prettyNum(big.mark =',', scientific = FALSE),
-   title = "FAILED MARKS",
-   subtitle = tagList(HTML("&uarr;"), "25% Since last day"),
-   icon = icon("pencil")
-  )
-  output$failed_marks <- renderValueBox(vb5)
+  fail_today <- combined_df[grepl("FAILED", combined_df$Status), ] |>
+   filter(Date %in% current_date) |> nrow()
+  fail_yester <- combined_df[grepl("FAILED", combined_df$Status), ] |>
+   filter(Date %in% previous_day) |> nrow()
+  fail_per <- (((fail_today-fail_yester)/fail_yester)*100) |> round(2)
+  output$failed_marks <- renderValueBox({
+   value = fail_today |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(fail_per)
+   arrow <- my_symbol(fail_per)
+   my_valuebox(value,  
+               title = "FAILED MARKS",
+               subtitle = tagList(HTML(arrow), paste0(abs(fail_per),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
   ####
-  prom <- registrationData() |> filter(Buttons %in% "green")
-  n_p <- nrow(prom)
-  vb3 <-  my_valuebox(
-   value = n_p |>
-    prettyNum(big.mark =',', scientific = FALSE),
-   title = "PENDING PROMOTIONS",
-   substitle = tagList(HTML("&uarr;"), "25% Since last day"),
-   icon = icon("pencil")
-  )
-  output$waiting_promotion <- renderValueBox(vb3)
+  prom_ready <- registrationData() |> 
+   filter(Year %in% c(1,2,3))
+  prom_ready1 <- prom_ready |>
+   filter(grepl("green", prom_ready$Buttons))
+  prom_current <-prom_ready1[grepl(current_date, prom_ready1$Date), ] |> nrow()
+  prom_previous <- prom_ready1[grepl(previous_day, prom_ready1$Date), ] |> nrow()
+  prom_per <- (((prom_current-prom_previous)/prom_previous)*100) |> round(2)
+  output$waiting_promotion <- renderValueBox({
+   value = prom_current |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(prom_per)
+   arrow <- my_symbol(prom_per)
+   my_valuebox(value,  
+               title = "PENDING PROMOTIONS",
+               subtitle = tagList(HTML(arrow), paste0(abs(prom_per),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
   ####
-  grad <- registrationData() |> 
-   filter(Year %in% 4) |>
-   filter(Buttons %in% "green")
-  n_g <- nrow(prom)
-  vb4 <-  my_valuebox(
-   value = n_g |>
-    prettyNum(big.mark =',', scientific = FALSE),
-   title = "GRADUATE LIST",
-   substitle = tagList(HTML("&uarr;"), "25% Since last day"),
-   icon = icon("pencil")
-  )
-  output$grad_students <- renderValueBox(vb4)
+  ready_grad <- registrationData() |> 
+   filter(Year %in% 4)
+  grad_current1 <- ready_grad |> 
+   filter(grepl("green", ready_grad$Buttons))
+  grad_current <- grad_current1[grepl(current_year, grad_current1$Date), ] |> nrow()
+  grad_previous <- grad_current1[grepl(previous_year, grad_current1$Date), ] |> nrow()
+  grad_per <- (((grad_current-grad_previous)/grad_previous)*100) |> round(2)
+  output$grad_students <- renderValueBox({
+   value = grad_current |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(grad_per)
+   arrow <- my_symbol(grad_per)
+   my_valuebox(value,  
+               title = "WAITING GRADUATION",
+               subtitle = tagList(HTML(arrow), paste0(abs(grad_per),"% since last year")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
+  }
+  admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+  output$set_time <- renderDataTable({
+  datatable(admin, escape = FALSE, selection = "none", rownames = FALSE,
+            options = list(
+             columnDefs = list(
+              list(targets = "_all", className = "dt-center")
+              ),
+             searching = FALSE,         # Hide search box
+             paging = FALSE,            # Hide pagination
+             ordering = FALSE,          # Disable ordering in all columns
+             lengthMenu = list(FALSE),  # Hide entries selection
+             language = list(
+              info = ""  # Hide the information about entries
+             )
+            )
+  ) |>
+    formatStyle(
+     columns = names(admin),  # Apply to all columns
+     textAlign = "center"   # Center alignment
+                )
+ })
  })
  observeEvent(input$score,{
   #record entry time and lecturer
@@ -933,6 +1031,15 @@ server <- function(input, output, session){
    )
   )
  )
+ output$approved_marks <- DT::renderDataTable(
+  t_b, server = TRUE, escape = FALSE, selection = "none",
+  options = list(
+   columnDefs = list(
+    list(targets = c(10), visible = FALSE),# column you want to hide
+    list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+   )
+  )
+ )
  #update admins output
  t_b <- loadData()[grepl("green", loadData()$actions), ]
  t_b_actions <- gsub('disabled title="', 'title="', t_b$actions)
@@ -1026,6 +1133,15 @@ server <- function(input, output, session){
   #render new data table
   output$marks <- DT::renderDataTable(
    loadData(), server = TRUE, escape = FALSE, selection = "none",
+   options = list(
+    columnDefs = list(
+     list(targets = c(10), visible = FALSE),# column you want to hide
+     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+    )
+   )
+  )
+  output$approved_marks <- DT::renderDataTable(
+   t_b, server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
      list(targets = c(10), visible = FALSE),# column you want to hide
@@ -1244,6 +1360,15 @@ server <- function(input, output, session){
   #render new data table
   output$marks <- DT::renderDataTable(
    loadData(), server = TRUE, escape = FALSE, selection = "none",
+   options = list(
+    columnDefs = list(
+     list(targets = c(10), visible = FALSE),# column you want to hide
+     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+    )
+   )
+  )
+  output$approved_marks <- DT::renderDataTable(
+   t_b, server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
      list(targets = c(10), visible = FALSE),# column you want to hide
@@ -2062,4 +2187,82 @@ server <- function(input, output, session){
    )
   }
  })
+ output$flip_time <- renderText({
+  date <- format(input$target_date, "%d-%m-%Y")
+  time <- strftime(input$select_time, "%T")
+  day <- weekdays(input$target_date)
+  date_time <- paste("On", day, date,time)
+  })
+ ####admin control of dates
+ observeEvent(input$open, {
+  shinyjqui::jqui_show("#flip", effect = "fade")
+  enable("register_code")
+  output$notice <- renderText({
+   paste("Course registration closes in:")
+  })
+  date <- format(input$target_date, "%d-%m-%Y")
+  time <- strftime(input$select_time, "%T")
+  day <- weekdays(input$target_date)
+  date_time <- paste("On", day, date,time)
+  admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+  admin[1,1] <- date_time
+  write.csv(
+   x = admin,
+   file = "data/admin.csv",
+   row.names = FALSE, quote = TRUE
+  )
+  output$set_time <- renderDataTable({
+   datatable(admin, escape = FALSE, selection = "none", rownames = FALSE,
+             options = list(
+              columnDefs = list(
+               list(targets = "_all", className = "dt-center")
+              ),
+              searching = FALSE,         # Hide search box
+              paging = FALSE,            # Hide pagination
+              ordering = FALSE,          # Disable ordering in all columns
+              lengthMenu = list(FALSE),  # Hide entries selection
+              language = list(
+               info = ""  # Hide the information about entries
+              )
+             )
+   ) |>
+    formatStyle(
+     columns = names(admin),  # Apply to all columns
+     textAlign = "center"   # Center alignment
+    )
+  }) 
+  })
+ observeEvent(input$close, {
+  shinyjqui::jqui_hide("#flip", effect = "fade")
+  disable("register_code")
+  output$notice <- renderText({
+   paste("Course registration has been closed. Consult your department.")
+  })
+  admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+  admin[1,1] <- "Now Closed"
+  write.csv(
+   x = admin,
+   file = "data/admin.csv",
+   row.names = FALSE, quote = TRUE
+  )
+  output$set_time <- renderDataTable({
+   datatable(admin, escape = FALSE, selection = "none", rownames = FALSE,
+             options = list(
+              columnDefs = list(
+               list(targets = "_all", className = "dt-center")
+              ),
+              searching = FALSE,         # Hide search box
+              paging = FALSE,            # Hide pagination
+              ordering = FALSE,          # Disable ordering in all columns
+              lengthMenu = list(FALSE),  # Hide entries selection
+              language = list(
+               info = ""  # Hide the information about entries
+              )
+             )
+   ) |>
+    formatStyle(
+     columns = names(admin),  # Apply to all columns
+     textAlign = "center"   # Center alignment
+    )
+  }) })
 }

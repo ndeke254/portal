@@ -13,9 +13,11 @@ library(stringr)
 library(echarts4r)
 library(pagedown)
 library(shinydashboard)
-
+library(shinyTime)
 #import data
 units <- read_csv("data/units.csv",show_col_types = FALSE) # nolint
+admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+
 source("modal_dialog.R")
 # Define the fields we want to save from the form
 marks_fields <- c("reg", "name", "code", "course",
@@ -39,9 +41,8 @@ myToastOptions <- list( # nolint
  showMethod = "fadeIn", # nolint
  hideMethod = "fadeOut" # nolint
 )
-#customize my value box
 my_valuebox <- function(value, title, subtitle, icon = NULL, 
-                        color = "aqua", width = 2, href = NULL){
+                        color = NULL, width = 4, href = NULL){
  shinydashboard:::validateColor(color)
  if (!is.null(icon))
   shinydashboard:::tagAssert(icon, type = "i")
@@ -55,10 +56,28 @@ my_valuebox <- function(value, title, subtitle, icon = NULL,
   ),
   if (!is.null(icon)) div(class = "icon-large", icon)
  )
+ 
  if (!is.null(href)) 
   boxContent <- a(href = href, boxContent)
+ 
  div(
   class = if (!is.null(width)) paste0("col-sm-", width), 
   boxContent
+ )
+}
+my_color <- function(x){
+ case_when(
+  x > 0 ~"green",
+  x == 0 ~ "teal",
+  x < 0 ~ "red",
+  TRUE ~ "yellow"
+ )
+}
+my_symbol <- function(x){
+ case_when(
+  x > 0 ~  "&uarr;",
+  x == 0 ~ "&rarr;",
+  x < 0 ~ "&darr;",
+  TRUE ~ "&ndash;"
  )
 }

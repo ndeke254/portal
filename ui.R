@@ -1,3 +1,5 @@
+admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
  windowTitle = tags$head(
@@ -92,7 +94,23 @@ ui <- navbarPage(
                    width = 2),
      valueBoxOutput("grad_students",
                    width = 2)
-     )
+     ),
+    h1("SET REGISTRATION DATE"),
+    fluidRow(
+    column(3,  align = "center",
+    dateInput("target_date", "Select a End Date:", 
+              format = "dd-mm-yyyy"
+              ),
+    timeInput("select_time","Enter End time"),
+    actionButton("open","Open",icon = icon("unlock")),
+    actionButton("close","Close",icon = icon("lock"))
+    ),
+    column(3, align = "center",
+           h1("Your proposed Close Date and Time is:"),
+           textOutput("flip_time"),
+           DT::dataTableOutput("set_time")
+           )
+    )
     ),
    tabPanel(
     title = "REGISTRATION",
@@ -185,13 +203,15 @@ ui <- navbarPage(
  ),
  tabPanel(
   title = "REGISTRATION",
+  fluidRow(
+  column(6, align = "center",
+         disabled(
   selectizeInput(
    inputId = "register_code",
    label = "Code", # nolint
    multiple = FALSE,
    choices = NULL
   ),
-  disabled(
    textInput(
     inputId = "register_unit",
     label = "Register Unit", # nolint
@@ -201,6 +221,25 @@ ui <- navbarPage(
   div(
    style = "padding: 15px;",
    actionBttn("register",label = "Register")
+   )
+  ),
+  column(6, align = "center",
+         tags$div(
+          style = "color: red;",
+         textOutput("notice")
+         ),
+         conditionalPanel(
+          condition = "input.open",
+          tags$div(id = "flip",
+         #Flipdown time for submission
+         flipdownr::flipdown(
+          downto = admin[[1,1]],
+          id = "flipdown",
+          theme = "youkous"
+          )
+         )
+         )
+         )
   ),
   h1("Student Units"),
   DT::dataTableOutput("registered_units"),
