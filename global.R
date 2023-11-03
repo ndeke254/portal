@@ -1,5 +1,4 @@
 library(shiny)
-
 library(rdrop2)
 library(shinyFeedback) # nolint
 library(shinyjs)
@@ -15,14 +14,14 @@ library(echarts4r)
 library(pagedown)
 library(shinydashboard)
 library(shinyTime)
+library(shinybusy)
+library(DBI)
 #import data
 units <- read_csv("data/units.csv",show_col_types = FALSE) # nolint
-admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
-
 source("modal_dialog.R")
 # Define the fields we want to save from the form
 marks_fields <- c("reg", "name", "code", "course",
-                  "score", "grade", "time", "lecturer","actions")
+                  "score", "grade", "time", "lecturer","actions","student_year")
 users <- c("DR.JOHN", "PROF.MAKORE", "MR.WAMAE", "MS.MUTUA", "DR.OCHIENG")# nolint
 reg_fields <- c("Name",	"Gender",	"ID",	"Reg","Code","Course", "Date",	"Buttons","Year")
 # use this list for all your toasts
