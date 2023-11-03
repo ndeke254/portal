@@ -431,6 +431,7 @@ server <- function(input, output, session){
                       time =  character(0),
                       lecturer =  character(0),
                       action =  character(0),
+                      student_year =  character(0),
                       stringsAsFactors = FALSE)
    #update the buttons
    updateTextInput(
@@ -516,8 +517,24 @@ server <- function(input, output, session){
    data
   }
  }
+ #get approved marks only
+ tb <- function(){
+  data <- loadData()[grepl("green", loadData()$actions), ]
+  data
+ }
  # When the Submit button is clicked, save the form data
  observeEvent(input$submit, {
+  #check exam type
+  if(input$reg != ""){
+  reg_no <- input$reg
+  req(!reg_no %in% "")
+  #student details
+  cleaned_reg <- gsub("/", "", reg_no)
+  fileName <- paste0(cleaned_reg,".csv")
+  file <- read.csv(file = paste0(registered_unitsDir,"/",fileName))
+  type <-  file |> filter(Code %in% input$code)
+  type <- type$Type
+  }
   #put control to remove NA values
   if (input$reg == "" | input$code == "" | is.na(input$score)
       | input$grade == "") {
@@ -526,7 +543,7 @@ server <- function(input, output, session){
     "error", "Fill all fields!", .options = myToastOptions
    )
   } else if(input$reg != "" && input$code != "" && !is.na(input$score)
-            && input$grade != "" && input$id == 0 ) {
+            && input$grade != "" && input$id == 0 && type == "FIRST ATTEMPT") {
    # Whenever all fields are filled, aggregate form data
    formData <- reactive({
     data <- sapply(marks_fields, function(x) input[[x]])
@@ -555,16 +572,7 @@ server <- function(input, output, session){
     loadData(), server = TRUE, escape = FALSE, selection = "none",
     options = list(
      columnDefs = list(
-      list(targets = c(10), visible = FALSE),# column you want to hide
-      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
-     )
-    )
-   )
-   output$approved_marks <- DT::renderDataTable(
-    t_b, server = TRUE, escape = FALSE, selection = "none",
-    options = list(
-     columnDefs = list(
-      list(targets = c(10), visible = FALSE),# column you want to hide
+      list(targets = c(10,11), visible = FALSE),# column you want to hide
       list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
      )
     )
@@ -625,8 +633,9 @@ server <- function(input, output, session){
    #create new file
    newFile <- data.frame(
     reg = row$reg, name = row$name, code = row$code, course = row$course,
-    score = input$score,	grade = input$grade,	time = row$time, 
-    lecturer = row$lecturer, actions = new1
+    score = input$score,	grade = input$grade,	
+    time = format(Sys.time(), "%d-%m-%Y %H:%M"), 
+    lecturer = row$lecturer, actions = new1, student_year = row$student_year
    )
    fileName <- gsub("released_results/", "", row$filename)
    # Write the file to the local system
@@ -640,16 +649,22 @@ server <- function(input, output, session){
     loadData(), server = TRUE, escape = FALSE, selection = "none",
     options = list(
      columnDefs = list(
-      list(targets = c(10), visible = FALSE),# column you want to hide
+      list(targets = c(10,11), visible = FALSE),# column you want to hide
       list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
      )
     )
    )
+   #update admins output
+   t_b <- loadData()[grepl("green", loadData()$actions), ]
+   t_b_actions <- gsub('disabled title="', 'title="', t_b$actions)
+   t_b_actions <- gsub( 'title="Approve"',
+                        'disabled title="Approve"', t_b_actions)
+   t_b$actions <- t_b_actions 
    output$approved_marks <- DT::renderDataTable(
     t_b, server = TRUE, escape = FALSE, selection = "none",
     options = list(
      columnDefs = list(
-      list(targets = c(10), visible = FALSE),# column you want to hide
+      list(targets = c(10,11), visible = FALSE),# column you want to hide
       list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
      )
     )
@@ -688,6 +703,97 @@ server <- function(input, output, session){
     value = 0
    )
    hideToast(animate = TRUE, session = session)
+  }else if(input$reg != "" && input$code != "" && !is.na(input$score)
+            && input$grade != "" && type != "FIRST ATTEMPT" ) {
+   if(input$score >= 1 && input$score <= 49){
+   row <- loadData()[loadData()$reg %in%input$reg &
+                      loadData()$code %in%input$code, ] 
+   #change button appearance
+   button <- row$actions
+   # change buttons
+   new_buttons <- gsub("color: green;",
+                       "color: red;", button)
+   new1 <- gsub('disabled title="',
+                'title="', new_buttons)
+   newFile <- data.frame(
+    reg = row$reg, name = row$name, code = row$code, course = row$course,
+    score = input$score,	grade = paste(input$grade,"*"), 
+    time = format(Sys.time(), "%d-%m-%Y %H:%M"),
+    lecturer = row$lecturer, actions = new1
+    )
+    #filename
+    fileName <- gsub("released_results/", "", row$filename)
+    # Write the file to the local system
+    write.csv(
+     x = newFile,
+     file = file.path(releasedDir, fileName),
+     row.names = FALSE, quote = TRUE
+    )
+    #show new data frame
+    output$marks <- DT::renderDataTable(
+     loadData(), server = TRUE, escape = FALSE, selection = "none",
+     options = list(
+      columnDefs = list(
+       list(targets = c(10,11), visible = FALSE),# column you want to hide
+       list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+      )
+     )
+    )
+    #update admins output
+    t_b <- loadData()[grepl("green", loadData()$actions), ]
+    t_b_actions <- gsub('disabled title="', 'title="', t_b$actions)
+    t_b_actions <- gsub( 'title="Approve"',
+                         'disabled title="Approve"', t_b_actions)
+    t_b$actions <- t_b_actions 
+    output$approved_marks <- DT::renderDataTable(
+     t_b, server = TRUE, escape = FALSE, selection = "none",
+     options = list(
+      columnDefs = list(
+       list(targets = c(10,11), visible = FALSE),# column you want to hide
+       list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+      )
+     )
+    )
+    resetLoadingButton("submit")
+    shinyjqui::jqui_hide("#exit_button", effect = "fade")
+    showToast(
+      "success", "Supp Updated!", .options = myToastOptions
+    )
+    #reset all fields to blank
+    #update choices
+    updateSelectizeInput(
+     session = session,
+     inputId = "reg",
+     choices = registrationData()$Reg,
+     server = TRUE,
+     selected = NULL,
+     options = list(maxOptions = 3)
+    )
+    updateSelectizeInput(
+     session = session,
+     inputId = "code",
+     choices = NULL,
+     selected = NULL,
+     server = TRUE,
+     options = list(maxOptions = 3)
+    )
+    updateNumericInput(
+     session = session,
+     label = "Score",
+     inputId = "score",
+     value = ""
+    )
+    updateTextInput(
+     session = session,
+     inputId = "id",
+     value = 0
+    )
+   }else{
+    showToast(
+     "error", "Supplementary score > 50!", .options = myToastOptions
+    )
+    resetLoadingButton("submit")
+   }
   }
  })
  #update uneditable fields from database
@@ -733,6 +839,7 @@ server <- function(input, output, session){
    inputId = "grade",
    value = grade
   )
+ 
   code <- input$Code
   # define course
   course <- reactive({
@@ -752,11 +859,24 @@ server <- function(input, output, session){
   data_entered <- c(input$reg, input$code)
   data_saved <- loadData() |>
    select(reg, code)
+  #check exam type
+  reg_no <- input$reg
+  req(!reg_no %in% "")
+  #student details
+  cleaned_reg <- gsub("/", "", reg_no)
+  fileName <- paste0(cleaned_reg,".csv")
+  registered_students <- list.files(registered_unitsDir, full.names = FALSE)
+  if(fileName %in% registered_students){
+  file <- read.csv(file = paste0(registered_unitsDir,"/",fileName))
+  type <-  file |> filter(Code %in% input$code)
+  type <- type$Type
+  }
   #check for a row match
   if (is.na(row.match(data_entered, data_saved))) {
+   updateTextInput(session, "grade", label = "Grade")
    enable("submit")
   } else if(row.match(data_entered, data_saved) && 
-            input$id == 0) {
+            input$id == 0 &&  type != "SUPPLEMENTARY"){
    row_wise <- loadData()[loadData()$reg %in%input$reg &
                            loadData()$code %in%input$code, ]
    updateNumericInput(
@@ -773,7 +893,13 @@ server <- function(input, output, session){
             input$id == 1) {
    enable("submit")
    enable("score")
-  } else {
+  } else if(row.match(data_entered, data_saved) && 
+            type != "FIRST ATTEMPT"){
+   enable("submit")
+   enable("score")
+   updateTextInput(session, "grade", label = "Grade *")
+   updateNumericInput(session, "score", "Score *")
+  }else{
    return()
   }
   #output value boxes
@@ -951,9 +1077,11 @@ server <- function(input, output, session){
   enable("score")
   reg_no <- input$reg
   #student details
-  student_data <- registrationData() |> filter(Reg %in% input$reg_no)
+  student_data <- registrationData() |> filter(Reg %in% reg_no)
   student_year <- student_data$Year 
   student_course <- student_data$Code
+  #update student year field
+  updateTextInput(session, "student_year", value = student_year)
   cleaned_reg <- gsub("/", "", reg_no)
   fileName <- paste0(cleaned_reg,".csv")
   registered_students <- list.files(registered_unitsDir, full.names = FALSE)
@@ -1026,7 +1154,7 @@ server <- function(input, output, session){
   loadData(), server = TRUE, escape = FALSE, selection = "none",
   options = list(
    columnDefs = list(
-    list(targets = c(10), visible = FALSE),# column you want to hide
+    list(targets = c(10,11), visible = FALSE),# column you want to hide
     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
    )
   )
@@ -1035,7 +1163,7 @@ server <- function(input, output, session){
   t_b, server = TRUE, escape = FALSE, selection = "none",
   options = list(
    columnDefs = list(
-    list(targets = c(10), visible = FALSE),# column you want to hide
+    list(targets = c(10,11), visible = FALSE),# column you want to hide
     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
    )
   )
@@ -1050,7 +1178,7 @@ server <- function(input, output, session){
   t_b, server = TRUE, escape = FALSE, selection = "none",
   options = list(
    columnDefs = list(
-    list(targets = c(10), visible = FALSE),# column you want to hide
+    list(targets = c(10,11), visible = FALSE),# column you want to hide
     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
    )
   )
@@ -1135,16 +1263,7 @@ server <- function(input, output, session){
    loadData(), server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
-     list(targets = c(10), visible = FALSE),# column you want to hide
-     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
-    )
-   )
-  )
-  output$approved_marks <- DT::renderDataTable(
-   t_b, server = TRUE, escape = FALSE, selection = "none",
-   options = list(
-    columnDefs = list(
-     list(targets = c(10), visible = FALSE),# column you want to hide
+     list(targets = c(10,11), visible = FALSE),# column you want to hide
      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
     )
    )
@@ -1167,7 +1286,7 @@ server <- function(input, output, session){
    t_b, server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
-     list(targets = c(10), visible = FALSE),# column you want to hide
+     list(targets = c(10,11), visible = FALSE),# column you want to hide
      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
     )
    )
@@ -1362,16 +1481,22 @@ server <- function(input, output, session){
    loadData(), server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
-     list(targets = c(10), visible = FALSE),# column you want to hide
+     list(targets = c(10,11), visible = FALSE),# column you want to hide
      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
     )
    )
   )
+  #update admins output
+  t_b <- loadData()[grepl("green", loadData()$actions), ]
+  t_b_actions <- gsub('disabled title="', 'title="', t_b$actions)
+  t_b_actions <- gsub( 'title="Approve"',
+                       'disabled title="Approve"', t_b_actions)
+  t_b$actions <- t_b_actions 
   output$approved_marks <- DT::renderDataTable(
    t_b, server = TRUE, escape = FALSE, selection = "none",
    options = list(
     columnDefs = list(
-     list(targets = c(10), visible = FALSE),# column you want to hide
+     list(targets = c(10,11), visible = FALSE),# column you want to hide
      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
     )
    )
@@ -1380,6 +1505,17 @@ server <- function(input, output, session){
             "Mark Deleted!",
             .options = myToastOptions )
   removeModal()
+  #make deleted unit available for uploading again
+  student_del <- filtered_df$reg
+  student_del <- gsub("/", "", student_del)
+  fileName <- paste0(student_del,".csv")
+  file <- read.csv(file = paste0(registered_unitsDir,"/",fileName))
+  unit_code <- filtered_df$code
+  file$Status[file$Code == unit_code] <- "REGISTERED"
+  write.csv(x = file,
+            file = file.path(registered_unitsDir, fileName),
+            row.names = FALSE, quote = TRUE
+  )
  })
  #STUDENT TAB
  registered_unitsDir <- "registered_units"
@@ -1423,6 +1559,15 @@ server <- function(input, output, session){
   list2 <- as.list(reg_units()$Code)
   #Remaining units
   list <- setdiff(list1, list2)
+  cleaned_reg <- gsub("/", "", input$student_reg)
+  fileName <- paste0(cleaned_reg,".csv")
+  registered_students <- list.files(registered_unitsDir, full.names = FALSE)
+  if(fileName %in% registered_students){
+  #already passed units
+  n_passed <- reg_units() |> filter(Status %in% "PASSED") |> nrow()
+  per <- n_passed/length(list1)
+  update_progress("bar",per)
+  }
   #list update
   if(length(list) != 0){
    updateSelectizeInput(
@@ -1434,14 +1579,16 @@ server <- function(input, output, session){
     options = list(maxOptions = 3)
    )
   }else{
-   showToast("info", "All Units registered!",
-             .options = myToastOptions )
+   showToast("info", "Register Failed Units!",
+             .options = myToastOptions)
+   supp_code <- reg_units() |> filter(Status %in% "FAILED")
    updateSelectizeInput(
     session = session,
     inputId = "register_code",
-    choices = NULL,
+    choices = supp_code$Code,
     server = TRUE
    )
+   
   }
   #student timetable
   datetime <- c(
@@ -1471,24 +1618,6 @@ server <- function(input, output, session){
   })
   #approved marks
   t_b_b <- loadData()[grepl("green", loadData()$actions), ]
-  t_b <- t_b_b |> filter(reg %in% input$student_reg) |>
-   select(code, course, grade) |>
-   arrange(code)
-  #student_tab marks
-  output$student_marks <- DT::renderDataTable(
-   datatable(t_b, escape = FALSE, selection = "none",
-             options = list(
-              searching = FALSE,         # Hide search box
-              paging = FALSE,            # Hide pagination
-              ordering = FALSE,          # Disable ordering in all columns
-              lengthMenu = list(FALSE),  # Hide entries selection
-              language = list(
-               info = ""  # Hide the information about entries
-              )
-             ) 
-   )
-  )
-  
   #first year
   chosen_units1 <- units |>
    filter(course %in% c("BOTH",student_course)) |>
@@ -1563,12 +1692,60 @@ server <- function(input, output, session){
     Units = n_total1,
     Average = average1
    )
+   t_b_1 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 1) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
   }else if(student_year == 2){
    #finale data
    data <- data.frame(
     Year = c("First","Second"),
     Units = c(n_total1,n_total2),
     Average = c(average1,average2)
+   )
+   t_b_1 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 1) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_2 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 2) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_2_marks <- DT::renderDataTable(
+    datatable(t_b_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
    )
   }else if(student_year == 3){
    #finale data
@@ -1577,12 +1754,124 @@ server <- function(input, output, session){
     Units = c(n_total1,n_total2,n_total3),
     Average = c(average1,average2,average3)
    )
+   t_b_1 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 1) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_2 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 2) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_2_marks <- DT::renderDataTable(
+    datatable(t_b_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_3 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 3) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_3_marks <- DT::renderDataTable(
+    datatable(t_b_3, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
   }else{
    #finale data
    data <- data.frame(
     Year = c("First","Second","Third","Fourth"),
     Units = c(n_total1,n_total2,n_total3,n_total4),
     Average = c(average1,average2,average3,average4)
+   )
+   t_b_1 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 1) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_2 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 2) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_2_marks <- DT::renderDataTable(
+    datatable(t_b_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_3 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 3) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_3_marks <- DT::renderDataTable(
+    datatable(t_b_3, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_4 <- t_b_b |> filter(reg %in% input$student_reg & student_year %in% 4) |>
+    select(code, course, grade) |>
+    arrange(code)
+   output$year_4_marks <- DT::renderDataTable(
+    datatable(t_b_4, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
    )
   }
   #transcript tables
@@ -1964,7 +2253,8 @@ server <- function(input, output, session){
    return
   }
   #convert HTML to a pdf file
-  pdf <- chrome_print(input = render_result, output = paste(reg_no,"_transcript.pdf"))
+  pdf <- chrome_print(input = render_result,
+                      output = paste(reg_no,"_transcript.pdf"))
   #PDF ready
   resetLoadingButton("transcripts")
   showToast("info", "Transcripts ready!",
@@ -2101,9 +2391,13 @@ server <- function(input, output, session){
  })
  #update on button click
  observeEvent(input$register,{
-  req(input$register_unit)
-  req(input$register_code)
   reg_no <- input$student_reg
+  if(input$register_code == ""){
+   showToast("info", "Select a Unit!",
+             .options = myToastOptions )
+  }else{
+   req(input$register_unit)
+   req(input$register_code)
   #student details
   student_data <- registrationData() |> filter(Reg %in% reg_no)
   student_year <- student_data$Year 
@@ -2112,12 +2406,16 @@ server <- function(input, output, session){
   registered_students <- list.files(registered_unitsDir, full.names = FALSE)
   if(fileName %in% registered_students){
    file <- read.csv(file = paste0(registered_unitsDir,"/",fileName))
+   code <- input$register_code
+   reg_codes <- file |> filter(Code %in% code)
+   if(nrow(reg_codes) == 0){
    new <- data.frame(
     Reg = input$student_reg,
     Code = input$register_code,
     Unit = input$register_unit,
     Date = format(Sys.time(), "%d-%m-%Y %H:%M"),
     Status = "REGISTERED",
+    Type = "FIRST ATTEMPT",
     Year = student_year
    )
    combined <- rbind.data.frame(file,new)
@@ -2127,6 +2425,26 @@ server <- function(input, output, session){
     file = file.path(registered_unitsDir, fileName),
     row.names = FALSE, quote = TRUE
    )
+   }else if(nrow(reg_codes) == 1){
+    #create a supplementary
+    new_file <- subset(file,Code != code)
+    new <- data.frame(
+     Reg = input$student_reg,
+     Code = input$register_code,
+     Unit = input$register_unit,
+     Date = format(Sys.time(), "%d-%m-%Y %H:%M"),
+     Status = "REGISTERED",
+     Type = "SUPPLEMENTARY",
+     Year = student_year
+    )
+    combined <- rbind.data.frame(new_file,new)
+    # Write the file to the local system
+    write.csv(
+     x = combined,
+     file = file.path(registered_unitsDir, fileName),
+     row.names = FALSE, quote = TRUE
+    )
+   }else{return()}
   }else{
    student_units <- data.frame(
     Reg = input$student_reg,
@@ -2134,6 +2452,7 @@ server <- function(input, output, session){
     Unit = input$register_unit,
     Date = format(Sys.time(), "%d-%m-%Y %H:%M"),
     Status = "REGISTERED",
+    Type = "FIRST ATTEMPT", 
     Year = 1
    )
    # Write the file to the local system
@@ -2186,24 +2505,17 @@ server <- function(input, output, session){
     server = TRUE
    )
   }
+  }
  })
- output$flip_time <- renderText({
-  date <- format(input$target_date, "%d-%m-%Y")
-  time <- strftime(input$select_time, "%T")
-  day <- weekdays(input$target_date)
-  date_time <- paste("On", day, date,time)
-  })
+
  ####admin control of dates
  observeEvent(input$open, {
   shinyjqui::jqui_show("#flip", effect = "fade")
-  enable("register_code")
-  output$notice <- renderText({
-   paste("Course registration closes in:")
-  })
-  date <- format(input$target_date, "%d-%m-%Y")
+  shinyjqui::jqui_show("#table", effect = "fade")
+  date <- format(input$target_date, "%Y-%m-%d")
   time <- strftime(input$select_time, "%T")
   day <- weekdays(input$target_date)
-  date_time <- paste("On", day, date,time)
+  date_time <- paste(date,time,"EAT")
   admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
   admin[1,1] <- date_time
   write.csv(
@@ -2230,39 +2542,61 @@ server <- function(input, output, session){
      columns = names(admin),  # Apply to all columns
      textAlign = "center"   # Center alignment
     )
-  }) 
   })
+  })
+ observe({
+  admin_1 <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+  invalidateLater(1000, session)
+  time1 <- as.POSIXct(admin_1[[1,1]], tz = "Africa/Nairobi")
+  time2 <- as.POSIXct(Sys.time(), tz = "Africa/Nairobi")
+  time_difference <- as.numeric(difftime(time1, time2, units = "secs"))
+  if(time_difference > 0){
+   output$notice <- renderText({
+    paste("Course Registration closes in:")
+   })
+   output$flip_time <- renderText({
+    date <- format(input$target_date, "%d-%m-%Y")
+    time <- strftime(input$select_time, "%T")
+    day <- weekdays(input$target_date)
+    date_time <- paste("On", day, date,time)
+   })
+   enable("register_code")
+   # Calculate days, hours, minutes, and seconds
+   days <- floor(time_difference / (24 * 3600))
+   time_difference <- time_difference %% (24 * 3600)
+   hours <- floor(time_difference / 3600)
+   time_difference <- time_difference %% 3600
+   minutes <- floor(time_difference / 60)
+   seconds <- round(time_difference %% 60, 0)
+   #output flip time countdown
+   output$days <- renderText(paste0(days, " days"))
+   output$hours <- renderText(paste0(hours, " hours"))
+   output$minutes <- renderText(paste0(minutes, " minutes"))
+   output$seconds <- renderText(paste0(seconds, " seconds"))
+  }else{
+   output$notice <- renderText({
+    paste("Course Registration has been closed. Kindly contact your Department.")
+   })
+   disable("register_code")
+   shinyjqui::jqui_hide("#flip", effect = "fade")
+   output$flip_time <- renderText({
+    paste("Please set a later date and time!")
+   })
+  }
+ })
  observeEvent(input$close, {
-  shinyjqui::jqui_hide("#flip", effect = "fade")
-  disable("register_code")
-  output$notice <- renderText({
-   paste("Course registration has been closed. Consult your department.")
-  })
   admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
-  admin[1,1] <- "Now Closed"
+  admin[1,1] <- "2000-01-01 00:00:00 EAT"
   write.csv(
    x = admin,
    file = "data/admin.csv",
    row.names = FALSE, quote = TRUE
   )
-  output$set_time <- renderDataTable({
-   datatable(admin, escape = FALSE, selection = "none", rownames = FALSE,
-             options = list(
-              columnDefs = list(
-               list(targets = "_all", className = "dt-center")
-              ),
-              searching = FALSE,         # Hide search box
-              paging = FALSE,            # Hide pagination
-              ordering = FALSE,          # Disable ordering in all columns
-              lengthMenu = list(FALSE),  # Hide entries selection
-              language = list(
-               info = ""  # Hide the information about entries
-              )
-             )
-   ) |>
-    formatStyle(
-     columns = names(admin),  # Apply to all columns
-     textAlign = "center"   # Center alignment
-    )
-  }) })
+  shinyjqui::jqui_hide("#flip", effect = "fade")
+  shinyjqui::jqui_hide("#table", effect = "fade")
+  disable("register_code")
+  output$notice <- renderText({
+   paste("Course Registration has been closed. Kindly contact your Department.")
+  })
+ })
 }

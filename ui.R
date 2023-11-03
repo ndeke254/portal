@@ -1,5 +1,4 @@
 admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
-
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
  windowTitle = tags$head(
@@ -48,7 +47,8 @@ ui <- navbarPage(
     hidden(textInput("id","ID")),
     hidden(textInput("time", "Time")),
     hidden(textInput("lecturer", "Lecturer")),
-    hidden(textInput("actions", "Actions"))
+    hidden(textInput("actions", "Actions")),
+    hidden(textInput("student_year", label = "Year", value = 0))
    ),
    conditionalPanel(
     condition = "input.confirm_edit", 
@@ -99,7 +99,8 @@ ui <- navbarPage(
     fluidRow(
     column(3,  align = "center",
     dateInput("target_date", "Select a End Date:", 
-              format = "dd-mm-yyyy"
+              format = "dd-mm-yyyy",
+              min = Sys.Date()
               ),
     timeInput("select_time","Enter End time"),
     actionButton("open","Open",icon = icon("unlock")),
@@ -108,7 +109,10 @@ ui <- navbarPage(
     column(3, align = "center",
            h1("Your proposed Close Date and Time is:"),
            textOutput("flip_time"),
+           tags$div(
+            id = "table",
            DT::dataTableOutput("set_time")
+           )
            )
     )
     ),
@@ -185,6 +189,17 @@ ui <- navbarPage(
   icon = icon("children"),
   textOutput("student_name"),
   textOutput("student_course"),
+  div(style = " margin-top: 45px;
+                margin-left: 1100px;
+                position: absolute;",
+  progress_circle(value = 0, 
+                shiny_id = "bar",
+                color = "green",
+                trail_width = 4,
+                width = "100%",
+                height = "100px",
+                )
+  ),
   tabsetPanel(
    tabPanel(
    title = "TIMETABLE",
@@ -204,14 +219,22 @@ ui <- navbarPage(
  tabPanel(
   title = "REGISTRATION",
   fluidRow(
-  column(6, align = "center",
+  column(6,
+         splitLayout(
          disabled(
   selectizeInput(
    inputId = "register_code",
    label = "Code", # nolint
    multiple = FALSE,
    choices = NULL
+  )),
+  selectizeInput(
+   inputId = "type" ,
+   label = "Exam Type", # nolint
+   multiple = FALSE,
+   choices = c("FIRST ATTEMPT","RETAKE 1", "RETAKE 2","SUPPLEMENTARY")
   ),
+  disabled(
    textInput(
     inputId = "register_unit",
     label = "Register Unit", # nolint
@@ -222,23 +245,18 @@ ui <- navbarPage(
    style = "padding: 15px;",
    actionBttn("register",label = "Register")
    )
-  ),
+  )),
   column(6, align = "center",
          tags$div(
-          style = "color: red;",
+          style = "color: red; font-weight: bold;",
          textOutput("notice")
          ),
-         conditionalPanel(
-          condition = "input.open",
           tags$div(id = "flip",
-         #Flipdown time for submission
-         flipdownr::flipdown(
-          downto = admin[[1,1]],
-          id = "flipdown",
-          theme = "youkous"
+                    column(1,textOutput( "days")),
+                    column(1,textOutput( "hours" )),
+                    column(1, textOutput( "minutes")),
+                    column(1,textOutput("seconds"))
           )
-         )
-         )
          )
   ),
   h1("Student Units"),
@@ -246,8 +264,26 @@ ui <- navbarPage(
  ),
  tabPanel(
   title = "RESULTS",
-  h1("Released Marks"),
-  DT::dataTableOutput("student_marks")
+  fluidRow(
+   column(6,
+          h1("Year 1 Marks"),
+          DT::dataTableOutput("year_1_marks")
+          ),
+  column(6,
+         h1("Year 2 Marks"),
+         DT::dataTableOutput("year_2_marks")
+         )
+  ),
+  fluidRow(
+  column(6,
+         h1("Year 3 Marks"),
+         DT::dataTableOutput("year_3_marks")
+         ),
+  column(6,
+         h1("Year 4 Marks"),
+         DT::dataTableOutput("year_4_marks")
+         )
+  )
   ),
  tabPanel(
   title = "ANALYSIS",

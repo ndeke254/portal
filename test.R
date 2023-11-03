@@ -1,31 +1,3 @@
-library(shiny)
+reg	name	code	course	scoredata:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAWElEQVR42mNgGPTAxsZmJsVqQApgmGw1yApwKcQiT7phRBuCzzCSDSHGMKINIeDNmWQlA2IigKJwIssQkHdINgxfmBBtGDEBS3KCxBc7pMQgMYE5c/AXPwAwSX4lV3pTWwAAAABJRU5ErkJggg==	grade	time	lecturer	actions	student_year
+X75/8343/2023	Jefferson Musumbi Ndeke	XET302	FURTHER TOPICS IN MACROECONOMICS	46	 D	25-10-2023 21:57	DR.JOHN	<button id="approve_ 45" type="button" class="btn btn-default action-button" style="color: green;" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" disabled title="Approve">  <i class="fas fa-check-to-slot" role="presentation" aria-label="check-to-slot icon"></i></button>    <button id="delete_ 45" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})" disabled title="Delete">  <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>    <button id="edit_ 45" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})" disabled title="Edit">  <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>      <button id="Edited" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled title="Edited">NO</button>	3
 
-ui <- fluidPage(
-  titlePanel("Extract Date and Time from Input"),
-  sidebarLayout(
-    sidebarPanel(
-      textInput("input_text", "Enter Date and Time (e.g., Wednesday 06-09-2023 00:00:00):")
-    ),
-    mainPanel(
-      textOutput("output_datetime")
-    )
-  )
-)
-
-server <- function(input, output) {
-  observeEvent(input$input_text, {
-    input_string <- input$input_text
-    if (!is.null(input_string) && nchar(input_string) > 0) {
-      tryCatch({
-        parsed_date_time <- strptime(input_string, format = "%A %d-%m-%Y %H:%M:%S")
-        formatted_date_time <- format(parsed_date_time, format = "%Y-%m-%d %H:%M:%S")
-      }, error = function(e) {
-        output$output_datetime <- renderText({
-          paste("Error: Invalid date and time format.")
-        })
-      })
-    }
-  })
-}
-
-shinyApp(ui, server)

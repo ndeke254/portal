@@ -376,24 +376,6 @@ small, .small {
     font-size: 100%;
     font-weight: 700;
 }
-.flipdown.flipdown__theme-youkous {
-    font-family: inherit;
-    font-size: 28px;
-    font-weight: bolder;
-}
-.flipdown.flipdown__theme-youkous .rotor-group-heading:before {
-    color: #0000009e;
-}
-.flipdown.flipdown__theme-youkous .rotor, .flipdown.flipdown__theme-youkous .rotor-leaf-front, .flipdown.flipdown__theme-youkous .rotor-top {
-  color: #000;
-  border-radius: 50px;
-  background-color: #8f8f8f;
-}
-.flipdown.flipdown__theme-youkous .rotor-bottom, .flipdown.flipdown__theme-youkous .rotor-leaf-rear {
-   color: #000;
-  border-radius: 50px;
-  background-color: #bbbbbb;
-}
 .leaflet-right .leaflet-control {
     margin-right: 80px;
 }
@@ -406,11 +388,12 @@ small, .small {
   border-bottom: 1px solid #2c2c2c36;
   
 }
-.flipdown.flipdown__theme-youkous .rotor:after {
-    border-top: solid 2px #cfcfcf;
+div#flip {
+    margin-top: 5px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
 }
-.flipdown{
-zoom: 0.38;
-font-size: 20px;
-width: 600px;
+.bar{
+ width: 90px;
 }
