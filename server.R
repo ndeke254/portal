@@ -66,14 +66,16 @@ server <- function(input, output, session){
     new_id <- gsub("\\d+", next_number, id)
     new_button <- str_replace(new_button, id, new_id)
    }
-   new <- gsub("background-color: #0025ff8f;", 
-               "background-color: #e9ecef;", new_button)
-   new1 <- gsub("YES","NO",new)  
+   new <- gsub("color: green;", 
+               "color: red;" , new_button) 
+   new1 <- gsub("background-color: #0025ff8f;", 
+               "background-color: #e9ecef;", new)
+   new2 <- gsub("YES","NO",new1)  
    #update the buttons
    updateTextInput(
     session = session,
     inputId = "Buttons",
-    value =  new1
+    value =  new2
    )
    data
   }else {
@@ -106,14 +108,16 @@ server <- function(input, output, session){
     new_id <- gsub("\\d+", next_number, id)
     new_button <- str_replace(new_button, id, new_id)
    }
-   new <- gsub("background-color: #0025ff8f;", 
-               "background-color: #e9ecef;", new_button)
-   new1 <- gsub("YES","NO",new)  
+   new <- gsub("color: green;", 
+               "color: red;" , new_button) 
+   new1 <- gsub("background-color: #0025ff8f;", 
+                "background-color: #e9ecef;", new)
+   new2 <- gsub("YES","NO",new1) 
    #update the buttons
    updateTextInput(
     session = session,
     inputId = "Buttons",
-    value =  new1
+    value =  new2
    )
   }
   data
@@ -573,7 +577,7 @@ server <- function(input, output, session){
     options = list(
      columnDefs = list(
       list(targets = c(10,11), visible = FALSE),# column you want to hide
-      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+      list(targets = c(1,2,3,4,5,6,8,9), orderable = FALSE)#Disable sorting
      )
     )
    )
@@ -650,7 +654,7 @@ server <- function(input, output, session){
     options = list(
      columnDefs = list(
       list(targets = c(10,11), visible = FALSE),# column you want to hide
-      list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+      list(targets = c(1,2,3,4,5,6,8,9), orderable = FALSE)#Disable sorting
      )
     )
    )
@@ -735,7 +739,7 @@ server <- function(input, output, session){
      options = list(
       columnDefs = list(
        list(targets = c(10,11), visible = FALSE),# column you want to hide
-       list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+       list(targets = c(1,2,3,4,5,6,8,9), orderable = FALSE)#Disable sorting
       )
      )
     )
@@ -1155,7 +1159,7 @@ server <- function(input, output, session){
   options = list(
    columnDefs = list(
     list(targets = c(10,11), visible = FALSE),# column you want to hide
-    list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+    list(targets = c(1,2,3,4,5,6,8,9), orderable = FALSE)#Disable sorting
    )
   )
  )
@@ -1264,7 +1268,7 @@ server <- function(input, output, session){
    options = list(
     columnDefs = list(
      list(targets = c(10,11), visible = FALSE),# column you want to hide
-     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+     list(targets = c(1,2,3,4,5,6,8,9), orderable = FALSE)#Disable sorting
     )
    )
   )
@@ -1482,7 +1486,7 @@ server <- function(input, output, session){
    options = list(
     columnDefs = list(
      list(targets = c(10,11), visible = FALSE),# column you want to hide
-     list(targets = c(1,2,3,4,5,6,7,8,9), orderable = FALSE)#Disable sorting
+     list(targets = c(1,2,3,4,5,6,8,9), orderable = FALSE)#Disable sorting
     )
    )
   )
@@ -1708,6 +1712,10 @@ server <- function(input, output, session){
               ) 
     )
    )
+   hide("year_2_marks")
+   hide("year_3_marks") 
+   hide("year_4_marks")
+      
   }else if(student_year == 2){
    #finale data
    data <- data.frame(
@@ -1747,6 +1755,8 @@ server <- function(input, output, session){
               ) 
     )
    )
+   hide("year_3_marks") 
+   hide("year_4_marks")
   }else if(student_year == 3){
    #finale data
    data <- data.frame(
@@ -1802,6 +1812,7 @@ server <- function(input, output, session){
               ) 
     )
    )
+   hide("year_4_marks") 
   }else{
    #finale data
    data <- data.frame(

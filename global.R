@@ -15,7 +15,7 @@ library(pagedown)
 library(shinydashboard)
 library(shinyTime)
 library(shinybusy)
-library(DBI)
+library(RMySQL)
 #import data
 units <- read_csv("data/units.csv",show_col_types = FALSE) # nolint
 source("modal_dialog.R")
