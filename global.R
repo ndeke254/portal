@@ -15,10 +15,28 @@ library(pagedown)
 library(shinydashboard)
 library(shinyTime)
 library(shinybusy)
+library(lubridate)
 library(RMySQL)
+library(dotenv)
+library(DBI)
+library(data.table)
+library(shinydashboardPlus)
+admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
+# Retrieve database credentials
+dotenv::load_dot_env()
+host <- Sys.getenv("DB_HOST")
+port <- as.numeric(Sys.getenv("DB_PORT"))
+dbname <- Sys.getenv("DB_NAME")
+user <- Sys.getenv("DB_USER")
+password <- Sys.getenv("DB_PASSWORD")
+
+
 #import data
 units <- read_csv("data/units.csv",show_col_types = FALSE) # nolint
-source("modal_dialog.R")
+source("confirm_modal_dialog.R")
+source("edit_modal_dialog.R")
+source("user_timeline.R")
+
 # Define the fields we want to save from the form
 marks_fields <- c("reg", "name", "code", "course",
                   "score", "grade", "time", "lecturer","actions","student_year")
