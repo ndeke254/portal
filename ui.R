@@ -1,4 +1,3 @@
-admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
  windowTitle = tags$head(
@@ -50,14 +49,6 @@ ui <- navbarPage(
     hidden(textInput("actions", "Actions")),
     hidden(textInput("student_year", label = "Year", value = 0))
    ),
-   conditionalPanel(
-    condition = "input.confirm_edit", 
-    tags$div(id = "exit_button",
-              actionButton(inputId = "exit",
-                           label = "Exit",
-                           title = "Exit mode")
-    )
-   ),
    div(
     style = "padding-top: 25px;",
     loadingButton("submit", "Submit",
@@ -97,14 +88,24 @@ ui <- navbarPage(
      ),
     h1("SET REGISTRATION DATE"),
     fluidRow(
+     column(12, align = "center",
+     br(),
+     switchInput(inputId = "switch"
+                 )
+     )
+     ),
+    fluidRow(
     column(3,  align = "center",
     dateInput("target_date", "Select a End Date:", 
               format = "dd-mm-yyyy",
               min = Sys.Date()
               ),
     timeInput("select_time","Enter End time"),
-    actionButton("open","Open",icon = icon("unlock")),
+    br(),
+    tags$div(
+    actionButton("open","Open",icon = icon("unlock")), 
     actionButton("close","Close",icon = icon("lock"))
+    )
     ),
     column(3, align = "center",
            h1("Your proposed Close Date and Time is:"),
@@ -142,7 +143,7 @@ ui <- navbarPage(
     hidden(
      textInput("Date", 
                "Date",
-               value = format(Sys.time(), "%d-%m-%Y %H:%M"),
+               value = format(Sys.time(), "%d/%m/%Y %H:%M:%S"),
                width = "120px")
      ),
     textInput("Reg",
@@ -154,28 +155,21 @@ ui <- navbarPage(
              "Select Photo", 
              accept = c("image/jpeg", "image/png")
              ),
+   column(4,
+          imageOutput("previewImage", width = "100%", height = "65px")
+   ),
    hidden(textInput("Course", label = "Course"),
           textInput("Buttons", label = ""),
-          textInput("toggle", label = "", value = "0"),
-          textInput("editmode", label = "", value = "0"),
           textInput("Year", label = "Year", value = "1")
           ),
-   conditionalPanel(
-   condition = "input.confirm_editreg", 
-   tags$div(id = "reset_button",
-   actionButton(inputId = "reset",
-                label = "Exit",
-                title = "Exit mode")
-   )
-   ),
    loadingButton("registerButton", "Register",
                style = "width: 110px;margin-top: -34px;",
                loadingLabel = "Registering",
                loadingSpinner = "cog")
    ),
   tags$hr(),
-  DT::dataTableOutput("registrationTable"),
- ),
+  DT::dataTableOutput("registrationTable")
+  ),
  tabPanel(   
   title = "RESULTS",
   h1("APPROVED RESULTS"),

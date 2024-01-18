@@ -1,0 +1,12 @@
+name: school_portal
+title: school_portal
+username: ndekejefferson
+account: ndekejefferson
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10557124
+bundleId: 7939235
+url: https://ndekejefferson.shinyapps.io/school_portal/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

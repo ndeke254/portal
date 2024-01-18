@@ -103,7 +103,7 @@ img {
     border: 2.5px solid rgb(20 255 25 / 10%);
 }
 #submit {
- background-color: #007bff;
+ background-color: #3c8dbc;
  height: 35.0px;
  border: 1px solid #767676;
  margin-left: 170px;
@@ -123,7 +123,7 @@ table.dataTable {
     background-color: #e9ecef;
     border-top: 1px solid #c9c9c9;
     border-bottom: 1px solid #c9c9c9;
-    font-weight: 500;
+    font-weight: 900;
     text-transform: uppercase;
 }
 .table.dataTable tbody td.active, .table.dataTable tbody tr.active td {
@@ -396,4 +396,85 @@ div#flip {
 }
 .bar{
  width: 90px;
+}
+.datepicker table tr td, .datepicker table tr th {
+  border-radius: 25px;
+  border-radius: 1.25rem
+}
+.dropdown-menu {
+ background-color: #dbd9c7;
+ font-size: 0.9rem;
+}
+.modal-footer {
+    align-self: center;
+}
+[data-title]:hover:after {
+    opacity: 1;
+    visibility: visible;
+}
+[data-title] {
+    position: relative;
+}
+[data-title]:after {
+    content: attr(data-title); 
+    position: absolute;
+    bottom: -2.6em;
+    left: 100%;
+    padding: 4px 4px 4px 8px;
+    color: #edf9f9;
+    white-space: nowrap; 
+    border-radius: 5px;  
+    background-image: -moz-linear-gradient(top, #3d6464, #cccccc);  
+    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #3d6464),color-stop(1, #cccccc));
+    background-image: -webkit-linear-gradient(top, #3d6464, #cccccc);   
+    background-image: -moz-linear-gradient(top, #3d6464, #cccccc);  
+    background-image: -ms-linear-gradient(top, #3d6464, #cccccc);  
+    background-image: -o-linear-gradient(top, #3d6464, #cccccc);
+    opacity: 0;
+    z-index: 99999;
+    visibility: hidden;
+}
+
+button#close {
+    border: 1px #b7b7e3 solid;
+}
+button#open {
+    border: 1px #b7b7e3 solid;
+}
+.timeline-inverse>li>.timeline-item {
+    border-radius: 5px;
+    background-color: #ffffff;
+    border: 1px solid #cbcbcb;
+}
+.timeline:before {
+ background: #39cccc!important;
+}
+.box-header.with-border {
+    text-align: center;
+}
+.timeline>li>.timeline-item>.timeline-header {
+    font-weight: 600;
+    font-size: 14px;
+}
+.box {
+    border-radius: 15px;
+    background: #e9ecef;
+    margin-bottom: 24px;
+}
+.box-header .box-title, .box-header>.fa, .box-header>.glyphicon, .box-header>.ion {
+ font-weight: 900;
+}
+.fa-regular, .far {
+    font-weight: bolder;
+    color: red;
+    font-size: x-large;
+}
+button#ex {
+    float: right;
+    margin-top: -65px;
+    border: 0;
+    box-shadow: inset 0.1px 0.1px 2px 0px black;
+}
+.box-header.with-border {
+    border-bottom: 0px solid #ffffff; 
 }
