@@ -46,9 +46,8 @@ ui <- navbarPage(
     hidden(textInput("id","ID")),
     hidden(textInput("time", "Time")),
     hidden(textInput("lecturer", "Lecturer")),
-    hidden(textInput("actions", "Actions")),
-    hidden(textInput("student_year", label = "Year", value = 0))
-   ),
+    hidden(textInput("actions", "Actions"))
+    ),
    div(
     style = "padding-top: 25px;",
     loadingButton("submit", "Submit",
@@ -87,11 +86,11 @@ ui <- navbarPage(
                    width = 2)
      ),
     h1("SET REGISTRATION DATE"),
+    br(),
     fluidRow(
      column(12, align = "center",
      br(),
-     switchInput(inputId = "switch"
-                 )
+     switchInput(inputId = "switch")
      )
      ),
     fluidRow(
@@ -114,8 +113,15 @@ ui <- navbarPage(
             id = "table",
            DT::dataTableOutput("set_time")
            )
-           )
-    )
+           ),
+    column(3, align = "center",
+      textOutput("remaining_time"),
+      br(),
+      shinyWidgets::progressBar(id = "progress_bar",
+                                value = 50
+                                )
+      )
+      )
     ),
    tabPanel(
     title = "REGISTRATION",
@@ -163,7 +169,7 @@ ui <- navbarPage(
           textInput("Year", label = "Year", value = "1")
           ),
    loadingButton("registerButton", "Register",
-               style = "width: 110px;margin-top: -34px;",
+               style = "width: 110px;margin-top: 30px;",
                loadingLabel = "Registering",
                loadingSpinner = "cog")
    ),
@@ -208,11 +214,13 @@ ui <- navbarPage(
  ),
  tags$hr(),
  h1("Student Timetable"),
- DT::dataTableOutput("timetable")
+ DT::dataTableOutput("timetable"),
+ br()
  ),
  tabPanel(
   title = "REGISTRATION",
   fluidRow(
+   br(),
   column(6,
          splitLayout(
          disabled(
@@ -236,7 +244,7 @@ ui <- navbarPage(
    )
   ),
   div(
-   style = "padding: 15px;",
+   style = "padding: 30px;",
    actionBttn("register",label = "Register")
    )
   )),
@@ -255,6 +263,7 @@ ui <- navbarPage(
   ),
   h1("Student Units"),
   DT::dataTableOutput("registered_units"),
+  br()
  ),
  tabPanel(
   title = "RESULTS",
