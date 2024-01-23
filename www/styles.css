@@ -1,9 +1,8 @@
 .shiny-split-layout>div {
     overflow: unset;
-    vertical-align: bottom;
 }
 .shiny-split-layout {
-    margin-top: 5px;
+    margin-top: 20px;
 }
 .navbar-brand {
   width: 15px;
@@ -88,7 +87,7 @@ img {
     border: 1px solid #959595;
     box-shadow: 0px 1px 3px 0px #00000087;
 }
-.selectize-control.single .selectize-input:after {
+.selectize-control.single .selectize-input:not(.no-arrow):after {
  border-style: hidden;
 }
 
@@ -341,6 +340,7 @@ h1, .h1 {
     font-size: 13px;
     border-radius: 5px;
     font-family: inherit;
+    background-color: #3c8dbc;
     padding: 5px 12px;
     box-shadow: 0px 0px 5px #00000091;
 }
@@ -444,7 +444,7 @@ button#open {
 .timeline-inverse>li>.timeline-item {
     border-radius: 5px;
     background-color: #ffffff;
-    border: 1px solid #cbcbcb;
+    border: 1px solid #ddd;
 }
 .timeline:before {
  background: #39cccc!important;
@@ -477,4 +477,29 @@ button#ex {
 }
 .box-header.with-border {
     border-bottom: 0px solid #ffffff; 
+}
+.fa-user-edit:before, .fa-user-pen:before {
+    zoom: 1.5;
+    color: dodgerblue;
+}
+.fa-level-up-alt:before, .fa-turn-up:before {
+    zoom: 1.5;
+    color: darkgoldenrod;
+}
+div#remaining_time {
+    font-size: x-large;
+}
+div#notice {
+    margin-top: 35px;
+}
+.fa-marker:before {
+    zoom: 1.5;
+    color: brown;
+}
+.fa-user-graduate:before {
+    zoom: 1.5;
+}
+.fa-money-check-alt:before, .fa-money-check-dollar:before {
+    zoom: 1.5;
+    color: darkblue;
 }
