@@ -21,7 +21,6 @@ library(dotenv)
 library(DBI)
 library(data.table)
 library(shinydashboardPlus)
-admin <- read_csv("data/admin.csv",show_col_types = FALSE) # nolint
 # Retrieve database credentials
 dotenv::load_dot_env()
 host <- Sys.getenv("DB_HOST")
