@@ -67,14 +67,15 @@ server <- function(input, output, session){
    ideal <- '<button id="deletereg_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;deletereg_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Delete"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
     <button id="editreg_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;editreg_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Edit"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
     <button id="year_ 1" type="button" class="btn btn-default action-button" style="color: black;"   onclick="Shiny.onInputChange( &quot;year_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Promote"> <i class="fas fa-ranking-star" role="presentation" aria-label="ranking-star icon"></i></button>
-    <button id="timeline_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;timeline_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Timeline"> <i class="fas fa-clock-rotate-left" role="presentation" aria-label="clock-rotate-left icon"></i></button>
+    <button id="timeline_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;timeline_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Payments"> <i class="fas fa-clock-rotate-left" role="presentation" aria-label="clock-rotate-left icon"></i></button>
+    <button id="cash_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;cash_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Timeline"> <i class="fas fa-sack-dollar" role="presentation" aria-label="sack-dollar- icon"></i></button>
     <button id="Edited" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Edited">NO</button>'
   #marks table buttons
    ideal_marks <- '<button id="delete_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Delete"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
     <button id="edit_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Edit"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
     <button id="approve_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Approve"> <i class="fas fa-circle-check" role="presentation" aria-label="circle-check icon"></i></button>
     <button id="reject_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;reject_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Reject"> <i class="fas fa-circle-xmark" role="presentation" aria-label="circle-xmark icon"></i></button>
-    <button id="Status" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Status">ENTERED</button>'
+    <button id="Status" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Status">RELEASED</button>'
    #update the buttons
    updateTextInput(
     session = session,
@@ -556,6 +557,10 @@ server <- function(input, output, session){
        set_icon <- "user-graduate"
       }else if(action_icon %in% "PAID FEES"){
        set_icon <- "money-check-dollar"
+      }else if(action_icon %in% "DELETE MARK"){
+       set_icon <- "ban"
+      }else if(action_icon %in% "EDIT MARK"){
+       set_icon <- "pen-to-square"
       }else{
        return()
       }
@@ -966,6 +971,7 @@ observeEvent(input$register, {
   })
   # When the Submit button is clicked
   observeEvent(input$submit, {
+   if(input$id == "0"){
    #put control to remove NA values
    if (input$reg == "" | input$code == "" | is.na(input$score)
        | input$grade == "") {
@@ -984,11 +990,12 @@ observeEvent(input$register, {
     Code <- input$code
     Actions <- input$actions
     Lecturer <- sample(users, 1)
+    Status <- "RELEASED"
     # create the query
     update_query <- sprintf("UPDATE registered_units
-    SET Score = %s, Grade = '%s', Date = '%s', Actions = '%s', Lecturer = '%s'
+    SET Score = %s, Grade = '%s', Date = '%s', Actions = '%s', Lecturer = '%s', Status = '%s'
     WHERE Serial LIKE '%%%s%%' AND Code = '%s'",
-                            Score, Grade, Date, Actions, Lecturer, number, Code)
+                            Score, Grade, Date, Actions, Lecturer, Status, number, Code)
     # send query for execution
     DBI::dbSendQuery(con,update_query)
     register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
@@ -1013,15 +1020,15 @@ observeEvent(input$register, {
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
     DBI::dbSendQuery(con,timeline_query)
    }
+   }
   })
-  observeEvent(input$approve_button, {
-   selectedRow <- as.numeric(strsplit(input$approve_button, "_")[[1]][2])
-   search_string <- paste0("approve_ ",selectedRow)
+  observeEvent(input$cash_button, {
+   selectedRow <- as.numeric(strsplit(input$cash_button, "_")[[1]][2])
+   search_string <- paste0("cash_ ",selectedRow)
    # Load data from MySQL table into a data.table
-   mark_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   details_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
    # Get the serial number
-   row <- mark_data[grepl(search_string, mark_data$Actions), ]
-   print(row)
+   row <- details_data[grepl(search_string, details_data$Actions), ]
    # update timeline on mark submission
    reg_no <- row$Serial
    Users <- row$Name
@@ -1032,7 +1039,153 @@ observeEvent(input$register, {
    timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
    DBI::dbSendQuery(con,timeline_query)
+   showToast(
+    "success", "Payment Accepted", .options = myToastOptions
+   )
   })
+  
+  # customize mark buttons functionality
+  #Delete Button
+  observeEvent(input$delete_button, {
+   confirm_modal_dialog(approve = FALSE, edit = FALSE, delete = TRUE,
+                        editreg = FALSE, promote = FALSE, deletereg = FALSE)
+  })
+  #edit a student registration file
+ observeEvent(input$confirm_editreg,{
+  # Load data from MySQL table into a data.table
+  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  edit_modal_dialog()
+  selectedRow <- as.numeric(strsplit(input$editreg_button, "_")[[1]][2])
+  search_string <- paste0("editreg_ ",selectedRow)
+  row <- data[grepl(search_string, data$Actions), ]
+  updateSelectInput(session, "edit_code", selected = row$Code )
+  updateTextInput(session, "edit_name", value = row$Name)
+  updateSelectInput(session, "edit_gender", selected = row$Gender)
+  updateNumericInput(session, "edit_ID", value = row$ID)
+  updateTextInput(session, "edit_course", value = row$Course)
+  updateTextInput(session, "edit_buttons", value = row$Actions)
+  # Get ID to prevent empty execution
+  entered_ID <- row$ID
+  string <- data |> filter(grepl(entered_ID, ID))
+  string_selected <- string |> select(Serial)
+  string_selected <- string_selected[[1]]
+  #update the regInput 
+  updateTextInput(session = session, inputId = "edit_reg",
+                  value = string_selected )
+  
+ })
+ #confirm deletion of a row record
+ observeEvent(input$confirm_delete, {
+  selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
+  search_string_1 <- paste0("delete_ ",selectedRow)
+  search_string <- paste0("'%", search_string_1, "%'")
+  # Load data from MySQL table into a data.table
+  marks_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  # Get the serial number
+  row <- marks_data[grepl(search_string_1, marks_data$Actions), ]
+  # update timeline on deletion
+  reg_no <- row$Serial
+  Code <- row$Code
+  Course <- row$Course
+  Users <- sample(users, 1)
+  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+  Actions <- "DELETE MARK"
+  Description <- paste("Deleted marks for ", Code, " : ", Course, sep = "")
+  timeline_query <- paste0("INSERT INTO student_timeline
+                  VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
+  DBI::dbSendQuery(con,timeline_query)
+  # Query to remove a row
+  marks_delete_query <- paste0("DELETE FROM registered_units WHERE
+                           Actions LIKE", search_string 
+                               )
+ 
+  DBI::dbSendQuery(con, marks_delete_query)
+  # Reload data from MySQL after deleting the row
+  updated_data <- dbGetQuery(con, "SELECT * FROM registered_units")
+  # Update the Shiny reactiveValues with the updated data
+  register_units$data_table <- as.data.table(updated_data)
+  showToast("success",
+            "Mark Deleted!",
+            .options = myToastOptions )
+  removeModal()
+ })
+ 
+# edit Button on marks
+ observeEvent(input$edit_button, {
+  confirm_modal_dialog(approve = FALSE, edit = TRUE, delete = FALSE,
+                       editreg = FALSE, promote = FALSE, deletereg = FALSE)
+ })
+ observeEvent(input$confirm_edit,{
+  updateTextInput(session, "id", value = "1")
+  # Load data from MySQL table into a data.table
+  data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  units_table <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+  selectedRow <- as.numeric(strsplit(input$edit_button, "_")[[1]][2])
+  search_string <- paste0("edit_ ",selectedRow)
+  row <- data[grepl(search_string, data$Actions), ]
+  updateSelectInput(session, "code", choices = units_table$code,
+                    selected = row$Code)
+  updateSelectInput(session, "reg", selected = row$Serial)
+  updateTextInput(session, "name", value = row$Name)
+  updateNumericInput(session, "course", value = row$Course)
+  updateTextInput(session, "score", value = row$Score)
+  updateTextInput(session, "grade", value = row$Grade)
+  updateTextInput(session, "actions", value = row$Actions)
+  disable("code")
+  disable("reg")
+  showNotification("Edit only the score!", duration = 10, type = "message")
+  removeModal()
+ })
+ # confirm edit now
+ observeEvent(input$submit, {
+  if(input$id == "1"){
+ # collect all entries
+  new_score <- input$score
+  new_grade <- input$grade
+  action <- input$actions
+ # Load data from MySQL table into a data.table
+ selected_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+ selected_data <- selected_data |>
+  filter(Actions %in% action)
+ old_mark <- selected_data$Score
+ old_grade <- selected_data$Grade
+ # create the query
+ update_query <- sprintf("UPDATE registered_units SET
+                           Score = %s,
+                           Grade = '%s' 
+                           WHERE Actions = '%s'", 
+                           new_score, new_grade, action)
+ DBI::dbSendQuery(con,update_query)
+ # Reload data
+ register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+ resetLoadingButton("submit")
+ showToast("success",
+           "Student Marks Edited!",
+           .options = myToastOptions )
+ removeModal()
+ # create a timeline for the marks changes
+  marks_change = paste0(old_mark,"% (",old_grade,") → ", new_score, "% (", new_grade,")")
+ #update timeline
+ Users <- sample(users, 1)
+ reg_no <- selected_data$Serial
+ Code <- selected_data$Code
+ Course <- selected_data$Course
+ Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+ Actions <- "EDIT MARK"
+ Description <- paste("Edited Marks ",Code," : ", Course,"i.e.",marks_change )
+ #write changes
+ timeline_query <- paste0("INSERT INTO student_timeline
+                  VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
+ DBI::dbSendQuery(con,timeline_query)
+ #reset inputs
+ enable("code")
+ enable("reg")
+ updateTextInput(session, "id", value = "0")
+ updateTextInput(session, "score", value = "")
+ updateSelectizeInput(session, "code", choices = NULL, selected = NULL)
+ 
+  }
+})
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends
    })

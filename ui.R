@@ -43,7 +43,7 @@ ui <- navbarPage(
    numericInput("score", "Score", value = NULL, min = 1, max = 99),
    disabled(
     textInput("grade", "Grade"),
-    hidden(textInput("id","ID")),
+    hidden(textInput("id","ID", value = 0)),
     hidden(textInput("time", "Time")),
     hidden(textInput("lecturer", "Lecturer")),
     hidden(textInput("actions", "Actions"))
@@ -131,7 +131,9 @@ ui <- navbarPage(
                   ),
    textInput("Name", 
              "Name", 
-             width = "225px"),
+             width = "225px",
+             placeholder = "Enter Student name"
+             ),
    selectInput("Gender", 
                "Gender",
                choices = c("Male", "Female"),
@@ -155,7 +157,9 @@ ui <- navbarPage(
     textInput("Reg",
               "Registration Number",
               value = "",
-              width = "150px")
+              width = "150px",
+              placeholder = "Enter Registration number"
+    )
     ),
    fileInput("photoInput",
              "Select Photo", 
@@ -175,14 +179,9 @@ ui <- navbarPage(
    ),
   tags$hr(),
   DT::dataTableOutput("registrationTable")
-  ),
- tabPanel(   
-  title = "RESULTS",
-  h1("APPROVED RESULTS"),
-  DT::dataTableOutput("approved_marks")
   )
- )
- ),
+  )
+  ),
  tabPanel(
   title = "Student",
   value = "student",
@@ -229,7 +228,7 @@ ui <- navbarPage(
    label = "Code", # nolint
    multiple = FALSE,
    choices = NULL
-  )),
+   )),
   selectizeInput(
    inputId = "type" ,
    label = "Exam Type", # nolint
@@ -240,7 +239,8 @@ ui <- navbarPage(
    textInput(
     inputId = "register_unit",
     label = "Register Unit", # nolint
-    value =  NULL
+    value =  NULL,
+    placeholder = "Selected Unit"
    )
   ),
   div(

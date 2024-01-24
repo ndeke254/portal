@@ -503,3 +503,7 @@ div#notice {
     zoom: 1.5;
     color: darkblue;
 }
+.fa-ban:before, .fa-cancel:before {
+    zoom: 1.5;
+    color: red;
+}
