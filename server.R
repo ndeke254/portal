@@ -561,6 +561,8 @@ server <- function(input, output, session){
        set_icon <- "ban"
       }else if(action_icon %in% "EDIT MARK"){
        set_icon <- "pen-to-square"
+      }else if(action_icon %in% "APPROVE MARK"){
+       set_icon <- "check"
       }else{
        return()
       }
@@ -679,6 +681,175 @@ server <- function(input, output, session){
     server = TRUE,
     options = list(maxOptions = 3) 
    )
+  }
+  # Approved student marks
+  approved_reg_units <- register_units$data_table |> 
+   filter(Serial %in% student_reg) |>
+   select(c("Code","Course","Grade","Year")) |>
+   filter(student_reg_units$Score != "") |>
+   arrange(Code)
+  #year 1
+  data_1 <- approved_reg_units |>
+   filter(Year %in% "1") |>
+   subset(select = -c(4))
+  # year 2
+  data_2 <- approved_reg_units |>
+   filter(Year %in% "2") |>
+  subset(select = -c(4)) 
+   
+  # year 3
+  data_3 <- approved_reg_units |>
+   filter(Year %in% "3") |>
+  subset(select = -c(4))
+   
+  # year 4
+  data_4 <- approved_reg_units |>
+   filter(Year %in% "4") |>
+   subset(select = -c(4)) 
+  # if statements for them
+  if(student_year %in% "1"){
+   output$year_1_marks <- renderDataTable(
+    datatable(data_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   hide("year_2_marks")
+   hide("year_3_marks") 
+   hide("year_4_marks")
+   
+  }else if(student_year %in% "2"){
+   output$year_1_marks <- renderDataTable(
+    datatable(data_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   output$year_2_marks <- renderDataTable(
+    datatable(data_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   hide("year_3_marks") 
+   hide("year_4_marks")
+  }else if(student_year %in% "3"){
+   output$year_1_marks <- renderDataTable(
+    datatable(data_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   output$year_2_marks <- renderDataTable(
+    datatable(data_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+    output$year_3_marks <- renderDataTable(
+     datatable(data_3, escape = FALSE, selection = "none",
+               options = list(
+                searching = FALSE,         # Hide search box
+                paging = FALSE,            # Hide pagination
+                ordering = FALSE,          # Disable ordering in all columns
+                lengthMenu = list(FALSE),  # Hide entries selection
+                language = list(
+                 info = ""  # Hide the information about entries
+                )
+               ) 
+     )
+    )
+   hide("year_4_marks")
+  }else if(student_year %in% "4"){
+   output$year_1_marks <- renderDataTable(
+    datatable(data_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   output$year_2_marks <- renderDataTable(
+    datatable(data_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   output$year_3_marks <- renderDataTable(
+    datatable(data_3, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   output$year_4_marks <- renderDataTable(
+    datatable(data_4, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+  }else{
+   return()
   }
  })
   
@@ -895,6 +1066,7 @@ observeEvent(input$register, {
   }
   })
  observeEvent(input$reg, {
+  if(input$id == "0"){
   register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
   # Registered but with no marks units
   registered_units <- register_units$data_table |> 
@@ -904,25 +1076,26 @@ observeEvent(input$register, {
   x <- input$reg
   name_df <- registered_units |> 
    filter(Serial %in% x) |>
-   select(Name)
-  name <- name_df[[1]]
+   select(c("Name","Code"))
   updateTextInput(
    session = session,
    inputId = "name",
-   value = unique(name)
+   value = unique(name_df$Name)
   )
   
   # update code input
   updateSelectizeInput(
    session = session,
    inputId = "code",
-   choices = registered_units$Code,
-   selected =  registered_units$Code[1],
+   choices = name_df$Code,
+   selected =  name_df$Code[1],
    server = TRUE,
    options = list(maxOptions = 3) 
   )
+  }
  })
   observeEvent(input$code, {
+   if(input$id == "0"){
    units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
    #update course titles
    t <- input$code
@@ -934,6 +1107,7 @@ observeEvent(input$register, {
     inputId = "course",
     value = course_title
    )
+   }
   })
   observeEvent(input$score,{
    #set a grade on scale
@@ -1133,7 +1307,7 @@ observeEvent(input$register, {
   updateTextInput(session, "actions", value = row$Actions)
   disable("code")
   disable("reg")
-  showNotification("Edit only the score!", duration = 10, type = "message")
+  showNotification("Edit the score only!", duration = 10, type = "message")
   removeModal()
  })
  # confirm edit now
@@ -1182,10 +1356,49 @@ observeEvent(input$register, {
  enable("reg")
  updateTextInput(session, "id", value = "0")
  updateTextInput(session, "score", value = "")
- updateSelectizeInput(session, "code", choices = NULL, selected = NULL)
- 
+ updateSelectizeInput(session, "code", choices = "", selected ="")
   }
 })
+ # admin approve marks for the student 
+ observeEvent(input$approve_button, {
+  # Load data from MySQL table into a data.table
+  selected_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  selectedRow <- as.numeric(strsplit(input$approve_button, "_")[[1]][2])
+  search_string <- paste0("approve_ ",selectedRow)
+  row <- selected_data[grepl(search_string, selected_data$Actions), ]
+  action <- row$Actions
+  Status <- "APPROVED"
+  # change color for edited rows
+  button <- action
+  new_button <- gsub("background-color: #e9ecef;", 
+                     "background-color: #0025ff8f;", button)
+  edited_buttons <- gsub("RELEASED","APPROVED",new_button)
+  # create the query
+  update_query <- sprintf("UPDATE registered_units SET
+                           Status = '%s',
+                           Actions = '%s' 
+                           WHERE Actions = '%s'", 
+                          Status, edited_buttons, action)
+  DBI::dbSendQuery(con,update_query)
+  # Reload data
+  register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  showToast("success",
+            "Student Marks Approved!",
+            .options = myToastOptions )
+  #update timeline
+  Users <- "Administrator"
+  reg_no <- row$Serial
+  Code <- row$Code
+  Course <- row$Course
+  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+  Actions <- "APPROVE MARK"
+  Description <- paste("Approved Marks ",Code," : ", Course)
+  #write changes
+  timeline_query <- paste0("INSERT INTO student_timeline
+                  VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
+  DBI::dbSendQuery(con,timeline_query)
+ })
+ 
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends
    })

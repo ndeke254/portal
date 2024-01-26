@@ -267,24 +267,53 @@ ui <- navbarPage(
  ),
  tabPanel(
   title = "RESULTS",
+  br(),
   fluidRow(
    column(6,
-          h1("Year 1 Marks"),
-          DT::dataTableOutput("year_1_marks")
+          box(
+           solidHeader = TRUE,
+           status = "primary",
+           width = 12,
+           collapsible = TRUE,
+           collapsed = TRUE,
+           title = "FIRST YEAR",
+           DT::dataTableOutput("year_1_marks")
+          )
           ),
   column(6,
-         h1("Year 2 Marks"),
+         box(
+          solidHeader = TRUE,
+          status = "primary",
+          width = 12,
+          collapsible = TRUE,
+          collapsed = TRUE,
+          title = "SECOND YEAR",
          DT::dataTableOutput("year_2_marks")
+         )
          )
   ),
   fluidRow(
+   column(6,
+   box(
+    solidHeader = TRUE,
+    status = "primary",
+    width = 12,
+    collapsible = TRUE,
+    collapsed = TRUE,
+    title = "THIRD YEAR",
+    DT::dataTableOutput("year_3_marks")
+    )
+   ),
   column(6,
-         h1("Year 3 Marks"),
-         DT::dataTableOutput("year_3_marks")
-         ),
-  column(6,
-         h1("Year 4 Marks"),
-         DT::dataTableOutput("year_4_marks")
+         box(
+          solidHeader = TRUE,
+          status = "primary",
+          width = 12,
+          collapsible = TRUE,
+          collapsed = TRUE,
+          title = paste("FOURTH YEAR"),
+          DT::dataTableOutput("year_4_marks")
+          )
          )
   )
   ),
