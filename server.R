@@ -1,4 +1,17 @@
 server <- function(input, output, session){
+ shinyjs::runjs('
+    var container = $(".moving-sentence");
+    container.css("left", "100%");
+
+    function moveSentence() {
+      container.animate({left: "-100%"}, 30000, "linear", function() {
+        container.css("left", "100%");
+        moveSentence();
+      });
+    }
+
+    moveSentence();
+  ')
  # Create a connection to the MySQL database
  con <- dbConnect(RMySQL::MySQL(),
                   dbname = dbname,
@@ -62,31 +75,21 @@ server <- function(input, output, session){
   # Load data from MySQL table into a data.table
   data_table_1 <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   marks_data <- register_units$data_table |> filter(!is.na(Score))
-  if(nrow(data$table_data) == 0 || nrow(marks_data) == 0 ){
+  if(nrow(data$table_data) == 0){
    #create an ideal button
    ideal <- '<button id="deletereg_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;deletereg_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Delete"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
     <button id="editreg_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;editreg_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Edit"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
     <button id="year_ 1" type="button" class="btn btn-default action-button" style="color: black;"   onclick="Shiny.onInputChange( &quot;year_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Promote"> <i class="fas fa-ranking-star" role="presentation" aria-label="ranking-star icon"></i></button>
-    <button id="timeline_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;timeline_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Payments"> <i class="fas fa-clock-rotate-left" role="presentation" aria-label="clock-rotate-left icon"></i></button>
-    <button id="cash_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;cash_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Timeline"> <i class="fas fa-sack-dollar" role="presentation" aria-label="sack-dollar- icon"></i></button>
+    <button id="timeline_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;timeline_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Timeline"> <i class="fas fa-clock-rotate-left" role="presentation" aria-label="clock-rotate-left icon"></i></button>
+    <button id="cash_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;cash_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Payments"> <i class="fas fa-sack-dollar" role="presentation" aria-label="sack-dollar- icon"></i></button>
     <button id="Edited" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Edited">NO</button>'
-  #marks table buttons
-   ideal_marks <- '<button id="delete_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Delete"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
-    <button id="edit_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Edit"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
-    <button id="approve_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Approve"> <i class="fas fa-circle-check" role="presentation" aria-label="circle-check icon"></i></button>
-    <button id="reject_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;reject_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Reject"> <i class="fas fa-circle-xmark" role="presentation" aria-label="circle-xmark icon"></i></button>
-    <button id="Status" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Status">RELEASED</button>'
    #update the buttons
    updateTextInput(
     session = session,
     inputId = "Buttons",
     value = ideal
    )
-   updateTextInput(
-    session = session,
-    inputId = "actions",
-    value = ideal_marks
-   )
+  
   }else{
    button <- data$table_data |>
     arrange(desc(Date)) |>
@@ -113,34 +116,48 @@ server <- function(input, output, session){
     inputId = "Buttons",
     value =  new2
    )
-  
-  #marks table update
-  button_marks <- register_units$data_table |> 
-   arrange(desc(Date)) |> 
-   select(Actions) 
-  button_marks <- button_marks[[1,1]]
-  # Find all IDs containing a number
-  ids_marks <- str_extract_all(button_marks, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
-  # Replace IDs with the next number
-  new_button_marks <- button_marks
-  for (id in ids_marks) {
-   number <- str_extract(id, "\\d+")
-   next_number <- as.numeric(number) + 1
-   new_id <- gsub("\\d+", next_number, id)
-   new_button_marks <- str_replace(new_button_marks, id, new_id)
   }
-  new_marks <- gsub("color: green;", 
-              "color: black;" , new_button_marks) 
-  new1_marks <- gsub("background-color: #0025ff8f;", 
-               "background-color: #e9ecef;", new_marks)
-  new2_marks <- gsub("YES","NO",new1_marks)  
-  #update the buttons
-  updateTextInput(
-   session = session,
-   inputId = "actions",
-   value =  new2_marks
-  )
-  }
+  if (nrow(marks_data) == 0 ){
+   #marks table buttons
+   ideal_marks <- '<button id="delete_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Delete"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
+    <button id="edit_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Edit"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
+    <button id="approve_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Approve"> <i class="fas fa-circle-check" role="presentation" aria-label="circle-check icon"></i></button>
+    <button id="reject_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;reject_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Reject"> <i class="fas fa-circle-xmark" role="presentation" aria-label="circle-xmark icon"></i></button>
+    <button id="Status" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Status">RELEASED</button>'
+    updateTextInput(
+    session = session,
+    inputId = "actions",
+    value = ideal_marks
+   )
+  }else{
+   #marks table update
+   button_marks <- register_units$data_table |> 
+    arrange(desc(Date)) |> 
+    select(Actions) 
+   button_marks <- button_marks[[1,1]]
+   # Find all IDs containing a number
+   ids_marks <- str_extract_all(button_marks, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
+   # Replace IDs with the next number
+   new_button_marks <- button_marks
+   for (id in ids_marks) {
+    number <- str_extract(id, "\\d+")
+    next_number <- as.numeric(number) + 1
+    new_id <- gsub("\\d+", next_number, id)
+    new_button_marks <- str_replace(new_button_marks, id, new_id)
+   }
+   new_marks <- gsub("color: green;", 
+                     "color: black;" , new_button_marks) 
+   new1_marks <- gsub("background-color: #0025ff8f;", 
+                      "background-color: #e9ecef;", new_marks)
+   new2_marks <- gsub("PASSED","RELEASED",new1_marks)  
+   new3_marks <- gsub("FAILED","RELEASED",new2_marks) 
+   #update the buttons
+   updateTextInput(
+    session = session,
+    inputId = "actions",
+    value =  new3_marks
+   )
+    }
   #update choices
   updateSelectizeInput(
    session = session,
@@ -154,8 +171,8 @@ server <- function(input, output, session){
   updateSelectizeInput(
    session = session,
    inputId = "reg",
-   choices =  unique(register_units$data_table$Serial),
-   selected = unique(register_units$data_table$Serial[1]),
+   choices =  unique(data$table_data$Serial),
+   selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
   )
@@ -282,6 +299,15 @@ server <- function(input, output, session){
    session = session,
    inputId = "student_reg",
    choices = data$table_data$Serial,
+   selected = data$table_data$Serial[1],
+   server = TRUE,
+   options = list(maxOptions = 3)
+  )
+  #update choices
+  updateSelectizeInput(
+   session = session,
+   inputId = "reg",
+   choices =  unique(data$table_data$Serial),
    selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
@@ -485,6 +511,19 @@ server <- function(input, output, session){
  current_year <- as.numeric(filtered_df$Year)
  # add a plus one
  new_year <- current_year + 1
+ # set condition
+ units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+ student_units <- units |>
+  filter(course %in% c("BOTH",filtered_df$Code)) |>
+  filter(year %in% current_year)  
+ student_reg_units <- register_units$data_table |> 
+  filter(Serial %in% filtered_df$Serial) |>
+  filter(Year %in% filtered_df$Year) |>
+  arrange(Code)
+ list1 <- as.list(student_units$code)
+ list2 <- as.list(student_reg_units$Code)
+ list <- setdiff(list1, list2)
+ if(current_year < 4 & all(student_reg_units$Status == "PASSED") & length(list)== 0) {
  # update the row
  update_year_query <- sprintf("UPDATE student_details SET Year = %s WHERE Actions LIKE '%%%s%%'", new_year, search_string) 
  DBI::dbExecute(con,update_year_query)
@@ -505,6 +544,24 @@ server <- function(input, output, session){
            "Student Promoted!",
            .options = myToastOptions )
  removeModal()
+ }else if(current_year == 4 & all(student_reg_units$Status == "PASSED")& length(list)== 0){
+  showToast(
+   "error", "Horray! Waiting Graduation!",
+   .options = myToastOptions
+  )
+  removeModal()
+ }else if(current_year < 4 & all(student_reg_units$Status != "PASSED") | length(list)!= 0){
+  showToast("error",
+            "All Year Units NOT passed!",
+            .options = myToastOptions)
+  removeModal()
+  
+ }else{
+  removeModal()
+  showToast("error",
+            "Not Qualified!",
+            .options = myToastOptions )
+ }
  })
  # view a student timeline
  observeEvent(input$timeline_button, {
@@ -563,6 +620,8 @@ server <- function(input, output, session){
        set_icon <- "pen-to-square"
       }else if(action_icon %in% "APPROVE MARK"){
        set_icon <- "check"
+      }else if(action_icon %in% "PRINT TRANSCRIPT"){
+       set_icon <- "file-pdf"
       }else{
        return()
       }
@@ -586,41 +645,16 @@ server <- function(input, output, session){
  observeEvent(input$student_reg, {
   req(input$student_reg)
   student_reg <- input$student_reg
+  shinyjs::hide("download") 
   #student details
-  # Load data from MySQL table into a data.table
   data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
-  student_data <- data |> filter(Serial %in%student_reg)
-  
+  student_data <- data |>
+   filter(Serial %in%student_reg)
   student_year <- student_data$Year 
   student_course <- student_data$Code 
-  register_units$data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-  # create a table for a specific student
-  student_reg_units <- register_units$data_table |> 
-   filter(Serial %in% student_reg) |>
-   filter(Year %in% student_year) |>
-   arrange(Code)
-  # Render the DataTable
-  output$registered_units <- renderDataTable({
-   # create a table for a specific student
-   student_reg_units <- register_units$data_table |> 
-    filter(Serial %in% student_reg) |>
-    filter(Year %in% student_year) |>
-    arrange(Code)
-   datatable(student_reg_units,
-             escape = FALSE,
-             selection = "none",
-             options = list(
-              columnDefs = list(
-               list(targets = c(1,2,5,6,7,10,11,12), visible = FALSE),# column you want to show
-               list(targets = c(1,2,3,4,5,6,7,8,9,10,11,12), orderable = FALSE)#Disable sorting
-              )
-             )
-   )
-  })
-
   #student name
   output$student_name <- renderText({
-   paste(student_reg, student_data$Name)
+   paste(student_data$Serial, student_data$Name)
   })
   #student_course
   output$student_course <- renderText({
@@ -631,6 +665,70 @@ server <- function(input, output, session){
   student_units <- units |>
    filter(course %in% c("BOTH",student_course)) |>
    filter(year %in% student_year)
+  list1 <- as.list(student_units$code)
+  #already registered units
+  register_units$data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  # create a table for a specific student
+  student_reg_units <- register_units$data_table |> 
+   filter(Serial %in% student_reg) |>
+   filter(Year %in% student_year) |>
+   arrange(Code)
+  # registered current year units
+  output$registered_units <- DT::renderDataTable(
+   datatable(student_reg_units, escape = FALSE, selection = "none",
+             options = list(
+               columnDefs = list(
+                list(targets = c(1,2,5,6,7,10,11,12), visible = FALSE)),# column you want to hide
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+              lengthMenu = list(FALSE),  # Hide entries selection
+              language = list(
+               info = ""  # Hide the information about entries
+              )
+             ) 
+   )
+  )
+  list2 <- as.list(student_reg_units$Code)
+  #Remaining units
+  list <- setdiff(list1, list2)
+  # Get the students registered for a single unit
+  registered_students <- as.list(register_units$data_table$Serial)
+  if(student_reg %in% registered_students){
+   #already passed units
+   n_passed <- student_reg_units |> 
+    filter(Status %in% "PASSED") |>
+    nrow()
+   per <- n_passed/length(list1)
+   update_progress("bar",per)
+  }
+  #list update
+  if(length(list) != 0){
+   updateSelectizeInput(
+    session = session,
+    inputId = "register_code",
+    choices = list,
+    selected = "",
+    server = TRUE,
+    options = list(maxOptions = 3)
+   )
+  }else{
+   showToast("info", "All Units Registered!",
+             .options = myToastOptions)
+   supp_code <- student_reg_units |> filter(Status %in% "FAILED")
+   updateSelectizeInput(
+    session = session,
+    inputId = "register_code",
+    choices = supp_code$Code,
+    server = TRUE
+   )
+   
+  }
+  updateSelectizeInput(
+   session = session,
+   inputId = "type",
+   selected = ""
+  )
   #student timetable
   datetime <- c(
    "Mon 08:00", "Tue 08:00", "Wed 08:00", "Thu 08:00", "Fri 08:00",
@@ -640,13 +738,11 @@ server <- function(input, output, session){
   sample1 <- sample(datetime, size = 15, replace = TRUE)
   sample2 <- sample(users, size = 5, replace = TRUE)
   num_rows <- nrow(student_units)
-  # create a specific student timetable
-  student_units_table <- student_units |> 
-   select(code, title) |>
-   mutate(lecturer = rep(sample2, length.out = num_rows)) |>
-   mutate(time = rep(sample1, length.out = num_rows)) |>
-   mutate(venue = rep("", length.out = num_rows))
   output$timetable <- DT::renderDataTable({
+   student_units_table <- student_units |> 
+    select(code, title) |>
+    mutate(lecturer = rep(sample2, length.out = num_rows)) |>
+    mutate(time = rep(sample1, length.out = num_rows))
    datatable(student_units_table, escape = FALSE, selection = "none",
              options = list(
               searching = FALSE,         # Hide search box
@@ -659,57 +755,72 @@ server <- function(input, output, session){
              ) 
    )
   })
-  # update field with unregistered units only
-  list1 <- as.list(student_units_table$code)
-  list2 <- as.list(student_reg_units$Code)
-  list <- setdiff(list1, list2)
-  if(length(list)>0) {
-   updateSelectizeInput(
-    session = session,
-    inputId = "register_code",
-    choices = list,
-    selected = "",
-    server = TRUE,
-    options = list(maxOptions = 3)
+  
+  #approved marks
+  t_b_b <- register_units$data_table |> 
+   filter(Status == "PASSED" | Status == "FAILED")
+  #first year
+  chosen_units1 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 1)
+  t_b_1 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units1$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total1 <-  nrow(t_b_1)
+  total1 <- sum(t_b_1$Score)
+  average1 <- round(total1/n_total1,2)
+  #second year
+  chosen_units2 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 2)
+  t_b_2 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units2$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total2 <-  nrow(t_b_2)
+  total2 <- sum(t_b_2$Score)
+  average2 <- round(total2/n_total2,2)
+  #third year
+  chosen_units3 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 3)
+  t_b_3 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units3$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total3 <-  nrow(t_b_3)
+  total3 <- sum(t_b_3$Score)
+  average3 <- round(total3/n_total3,2)
+  #fourth year
+  chosen_units4 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 4)
+  t_b_4 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units4$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total4 <-  nrow(t_b_4)
+  total4 <- sum(t_b_4$Score)
+  average4 <- round(total4/n_total4,2)
+  #final average
+  student_f_units <- units |>
+   filter(course %in% c("BOTH",student_course))
+  t_b_f <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(t_b_1$Code, t_b_2$Code, t_b_3$Code, t_b_4$Code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  n_total <- nrow(t_b_f)
+  total <- sum(t_b_f$Score)
+  average <- round(total/n_total,2)
+  
+  #To find final averages
+  if(student_year == 1){
+   #finale data
+   data <- data.frame(
+    Year = "First",
+    Units = n_total1,
+    Average = average1
    )
-  }else{
-   updateSelectizeInput(
-    session = session,
-    inputId = "register_code",
-    choices = NULL,
-    selected = NULL,
-    server = TRUE,
-    options = list(maxOptions = 3) 
-   )
-  }
-  # Approved student marks
-  approved_reg_units <- register_units$data_table |> 
-   filter(Serial %in% student_reg) |>
-   select(c("Code","Course","Grade","Year")) |>
-   filter(student_reg_units$Score != "") |>
-   arrange(Code)
-  #year 1
-  data_1 <- approved_reg_units |>
-   filter(Year %in% "1") |>
-   subset(select = -c(4))
-  # year 2
-  data_2 <- approved_reg_units |>
-   filter(Year %in% "2") |>
-  subset(select = -c(4)) 
-   
-  # year 3
-  data_3 <- approved_reg_units |>
-   filter(Year %in% "3") |>
-  subset(select = -c(4))
-   
-  # year 4
-  data_4 <- approved_reg_units |>
-   filter(Year %in% "4") |>
-   subset(select = -c(4)) 
-  # if statements for them
-  if(student_year %in% "1"){
-   output$year_1_marks <- renderDataTable(
-    datatable(data_1, escape = FALSE, selection = "none",
+   t_b_1 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 1) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
               options = list(
                searching = FALSE,         # Hide search box
                paging = FALSE,            # Hide pagination
@@ -725,9 +836,18 @@ server <- function(input, output, session){
    hide("year_3_marks") 
    hide("year_4_marks")
    
-  }else if(student_year %in% "2"){
-   output$year_1_marks <- renderDataTable(
-    datatable(data_1, escape = FALSE, selection = "none",
+  }else if(student_year == 2){
+   #finale data
+   data <- data.frame(
+    Year = c("First","Second"),
+    Units = c(n_total1,n_total2),
+    Average = c(average1,average2)
+   )
+   t_b_1 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 1) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
               options = list(
                searching = FALSE,         # Hide search box
                paging = FALSE,            # Hide pagination
@@ -739,8 +859,11 @@ server <- function(input, output, session){
               ) 
     )
    )
-   output$year_2_marks <- renderDataTable(
-    datatable(data_2, escape = FALSE, selection = "none",
+   t_b_2 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 2) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_2_marks <- DT::renderDataTable(
+    datatable(t_b_2, escape = FALSE, selection = "none",
               options = list(
                searching = FALSE,         # Hide search box
                paging = FALSE,            # Hide pagination
@@ -754,9 +877,18 @@ server <- function(input, output, session){
    )
    hide("year_3_marks") 
    hide("year_4_marks")
-  }else if(student_year %in% "3"){
-   output$year_1_marks <- renderDataTable(
-    datatable(data_1, escape = FALSE, selection = "none",
+  }else if(student_year == 3){
+   #finale data
+   data <- data.frame(
+    Year = c("First","Second","Third"),
+    Units = c(n_total1,n_total2,n_total3),
+    Average = c(average1,average2,average3)
+   )
+   t_b_1 <- t_b_b |> filter(Seial %in% input$student_reg & Year %in% 1) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
               options = list(
                searching = FALSE,         # Hide search box
                paging = FALSE,            # Hide pagination
@@ -768,8 +900,11 @@ server <- function(input, output, session){
               ) 
     )
    )
-   output$year_2_marks <- renderDataTable(
-    datatable(data_2, escape = FALSE, selection = "none",
+   t_b_2 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 2) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_2_marks <- DT::renderDataTable(
+    datatable(t_b_2, escape = FALSE, selection = "none",
               options = list(
                searching = FALSE,         # Hide search box
                paging = FALSE,            # Hide pagination
@@ -781,23 +916,11 @@ server <- function(input, output, session){
               ) 
     )
    )
-    output$year_3_marks <- renderDataTable(
-     datatable(data_3, escape = FALSE, selection = "none",
-               options = list(
-                searching = FALSE,         # Hide search box
-                paging = FALSE,            # Hide pagination
-                ordering = FALSE,          # Disable ordering in all columns
-                lengthMenu = list(FALSE),  # Hide entries selection
-                language = list(
-                 info = ""  # Hide the information about entries
-                )
-               ) 
-     )
-    )
-   hide("year_4_marks")
-  }else if(student_year %in% "4"){
-   output$year_1_marks <- renderDataTable(
-    datatable(data_1, escape = FALSE, selection = "none",
+   t_b_3 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 3) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_3_marks <- DT::renderDataTable(
+    datatable(t_b_3, escape = FALSE, selection = "none",
               options = list(
                searching = FALSE,         # Hide search box
                paging = FALSE,            # Hide pagination
@@ -809,50 +932,509 @@ server <- function(input, output, session){
               ) 
     )
    )
-   output$year_2_marks <- renderDataTable(
-    datatable(data_2, escape = FALSE, selection = "none",
-              options = list(
-               searching = FALSE,         # Hide search box
-               paging = FALSE,            # Hide pagination
-               ordering = FALSE,          # Disable ordering in all columns
-               lengthMenu = list(FALSE),  # Hide entries selection
-               language = list(
-                info = ""  # Hide the information about entries
-               )
-              ) 
-    )
-   )
-   output$year_3_marks <- renderDataTable(
-    datatable(data_3, escape = FALSE, selection = "none",
-              options = list(
-               searching = FALSE,         # Hide search box
-               paging = FALSE,            # Hide pagination
-               ordering = FALSE,          # Disable ordering in all columns
-               lengthMenu = list(FALSE),  # Hide entries selection
-               language = list(
-                info = ""  # Hide the information about entries
-               )
-              ) 
-    )
-   )
-   output$year_4_marks <- renderDataTable(
-    datatable(data_4, escape = FALSE, selection = "none",
-              options = list(
-               searching = FALSE,         # Hide search box
-               paging = FALSE,            # Hide pagination
-               ordering = FALSE,          # Disable ordering in all columns
-               lengthMenu = list(FALSE),  # Hide entries selection
-               language = list(
-                info = ""  # Hide the information about entries
-               )
-              ) 
-    )
-   )
+   hide("year_4_marks") 
   }else{
-   return()
+   #finale data
+   data <- data.frame(
+    Year = c("First","Second","Third","Fourth"),
+    Units = c(n_total1,n_total2,n_total3,n_total4),
+    Average = c(average1,average2,average3,average4)
+   )
+   t_b_1 <- t_b_b |> filter(Seial %in% input$student_reg & Year %in% 1) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_1_marks <- DT::renderDataTable(
+    datatable(t_b_1, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_2 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 2) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_2_marks <- DT::renderDataTable(
+    datatable(t_b_2, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_3 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 3) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_3_marks <- DT::renderDataTable(
+    datatable(t_b_3, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+   t_b_4 <- t_b_b |> filter(Serial %in% input$student_reg & Year %in% 4) |>
+    select(Code, Course, Grade) |>
+    arrange(Code)
+   output$year_4_marks <- DT::renderDataTable(
+    datatable(t_b_4, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
+  }
+  #transcript tables
+  table_data1 <- t_b_1 |> select(Code, Course, Grade) |> arrange(Code) |>
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average1))
+  table_data2 <- t_b_2 |> select(Code, Course, Grade) |> arrange(Code) |>
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average2))
+  table_data3 <- t_b_3 |> select(Code, Course, Grade) |> arrange(Code) |> 
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average3))
+  table_data4 <- t_b_4 |> select(Code, Course, Grade) |> arrange(Code) |>
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average4))
+  #allow transcripts download
+  if(nrow(t_b_1) > 0){
+   enable("transcripts")
+  }else{
+   disable("transcripts")
+  }
+  #comment
+  a <- average
+  class <- case_when(
+   a >= 70 ~ "FIRST CLASS HONOURS",
+   a >= 60 ~ "SECOND CLASS-UPPER",
+   a >= 50 ~ "SECOND CLASS-LOWER",
+   a >= 1 ~ "PASS",
+   TRUE ~ ""
+  )
+  #availability conditions
+  if(student_reg %in% registered_students){
+   # missing units
+   r_units <- as.list(t_b_f$Code)
+   m_units <- setdiff(list1, r_units)
+   # failed units
+   file_2 <- register_units$data_table |> 
+    filter(Status %in% "FAILED")
+   list_2 <- as.list(file_2$Code)
+   #print feedback
+   if(length(m_units) > 0  & length(list_2) > 0){
+    comment <- paste("FAIL: Missing units - ", 
+                     paste(unlist(m_units), collapse = ", "),";",
+                     "Failed units - ",paste(unlist(list_2), collapse = ", "))
+   }else if(length(m_units)> 0){
+    comment <- paste("FAIL: Missing units - ",
+                     paste(unlist(m_units), collapse = ", "))
+   }else if(length(list_2)> 0){
+    comment <- paste("FAIL: Failed units - ",
+                     paste(unlist(list_2), collapse = ", "))
+   }else if(length(m_units)== 0  & length(list_2) == 0 & student_year == 4){
+    comment <- paste("PASS: Final class is",class)
+   }else{
+    comment <- paste("PASS: Promoted to the next Year")
+   }
+   #data table output
+   output$year_averages <- DT::renderDataTable({
+    datatable(data, escape = FALSE, selection = "none",
+              options = list(
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   })
+   #output class
+   output$clock <- renderEcharts4r({
+    e_charts() |> 
+     e_gauge(average, class) |> 
+     e_animation(duration = 4000)|>
+     e_title('% SCORE',left='center')
+   })
+   #graph 
+   output$graph <- renderEcharts4r({
+    data |> 
+     e_charts(Year) |>
+     e_bar(Average,
+           bind = Year,
+           emphasis = list(
+            focus = "item"),
+           itemStyle = list(
+            color = htmlwidgets::JS("
+          function(params) {
+          var colorList = ['#00ff00','#00ff00','#00ff00','#00ff00','#ff0000'];
+          return colorList[params.dataIndex]
+          } 
+          "),
+            shadowBlur = 0.5,
+            shadowColor = "#ced4da",
+            shadowOffsetX = 0.5)) |>
+     e_animation(duration = 4000)|>
+     e_axis_labels(x = "Year",y = "% Score")|> 
+     e_tooltip(backgroundColor = "#e9ecef") |>
+     e_toolbox_feature(feature = "saveAsImage") |>
+     e_legend(show = FALSE) |>
+     e_datazoom(type = "inside") |>
+     e_grid(show = TRUE)|>
+     e_title(text = student_data$Reg,
+             subtext = student_data$Course,
+             left = "center", top = 1,
+             sublink = "https://github.com/ndeke254",
+             textStyle = list(fontWeight = "normal"))|>
+     e_x_axis(splitLine=list(
+      lineStyle = list(
+       type = "dashed"))) |>
+     e_y_axis(scale = TRUE,
+              splitLine = list(
+               lineStyle = list(
+                type = "dashed"
+               )
+              )
+     ) |> 
+     e_image_g(
+      right = 120,
+      top = 90,
+      z = -999,
+      style = list(
+       image = "logo.png",
+       width = 200,
+       height = 200,
+       opacity = .1
+      )
+     )
+   }) 
+  }else{
+   output$year_averages <- DT::renderDataTable({
+    data.frame()
+   })
+   output$clock <- renderEcharts4r({
+    e_charts()
+   })
+   output$graph <- renderEcharts4r({
+    e_charts() |> 
+     e_title("No Data Available", left = "center")
+   })
   }
  })
-  
+ #prepare and download transcripts
+ #prepare the transcripts
+ observeEvent(input$transcripts,{
+  student_reg <- input$student_reg
+  #student details
+  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  student_data <- data |>
+   filter(Serial %in%student_reg)
+  student_year <- student_data$Year 
+  student_course <- student_data$Code 
+  #approved marks
+  t_b_b <- register_units$data_table |> 
+   filter(Status == "PASSED" | Status == "FAILED")
+  #first year
+  chosen_units1 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 1)
+  t_b_1 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units1$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total1 <-  nrow(t_b_1)
+  total1 <- sum(t_b_1$Score)
+  average1 <- round(total1/n_total1,2)
+  #second year
+  chosen_units2 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 2)
+  t_b_2 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units2$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total2 <-  nrow(t_b_2)
+  total2 <- sum(t_b_2$Score)
+  average2 <- round(total2/n_total2,2)
+  #third year
+  chosen_units3 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 3)
+  t_b_3 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units3$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total3 <-  nrow(t_b_3)
+  total3 <- sum(t_b_3$Score)
+  average3 <- round(total3/n_total3,2)
+  #fourth year
+  chosen_units4 <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% 4)
+  t_b_4 <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(chosen_units4$code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  # Calculate stats
+  n_total4 <-  nrow(t_b_4)
+  total4 <- sum(t_b_4$Score)
+  average4 <- round(total4/n_total4,2)
+  #final average
+  student_f_units <- units |>
+   filter(course %in% c("BOTH",student_course))
+  t_b_f <- t_b_b |> filter(Serial == input$student_reg & Code %in% c(t_b_1$Code, t_b_2$Code, t_b_3$Code, t_b_4$Code)) |>
+   select(Serial, Code, Course, Grade, Score)
+  n_total <- nrow(t_b_f)
+  total <- sum(t_b_f$Score)
+  average <- round(total/n_total,2)
+  #To find final averages
+  if(student_year == 1){
+   #finale data
+   data <- data.frame(
+    Year = "First",
+    Units = n_total1,
+    Average = average1
+   )
+  }else if(student_year == 2){
+   #finale data
+   data <- data.frame(
+    Year = c("First","Second"),
+    Units = c(n_total1,n_total2),
+    Average = c(average1,average2)
+   )
+  }else if(student_year == 3){
+   #finale data
+   data <- data.frame(
+    Year = c("First","Second","Third"),
+    Units = c(n_total1,n_total2,n_total3),
+    Average = c(average1,average2,average3)
+   )
+  }else{
+   #finale data
+   data <- data.frame(
+    Year = c("First","Second","Third","Fourth"),
+    Units = c(n_total1,n_total2,n_total3,n_total4),
+    Average = c(average1,average2,average3,average4)
+   )
+  }
+  #transcript tables
+  table_data1 <- t_b_1 |> select(Code, Course, Grade) |> arrange(Code) |>
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average1))
+  table_data2 <- t_b_2 |> select(Code, Course, Grade) |> arrange(Code) |>
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average2))
+  table_data3 <- t_b_3 |> select(Code, Course, Grade) |> arrange(Code) |> 
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average3))
+  table_data4 <- t_b_4 |> select(Code, Course, Grade) |> arrange(Code) |>
+   add_row(Code = "", Course = "AVERAGE SCORE", Grade = as.character(average4))
+  #parameters
+  r_name <- student_data$Name
+  reg_no <- input$student_reg
+  prog <- student_data$Course
+  date <- student_data$Date
+  id <- student_data$ID
+  stamp_datee <- format(Sys.Date(),  format = "%d %b %y")
+  comment <- comment
+  reg_No <- gsub("/", "", input$student_reg)
+  #comment
+  a <- average
+  class <- case_when(
+   a >= 70 ~ "FIRST CLASS HONOURS",
+   a >= 60 ~ "SECOND CLASS-UPPER",
+   a >= 50 ~ "SECOND CLASS-LOWER",
+   a >= 1 ~ "PASS",
+   TRUE ~ ""
+  )
+  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+  student_units <- units |>
+   filter(course %in% c("BOTH",student_course)) |>
+   filter(year %in% student_year)
+  list1 <- as.list(student_units$code)
+  # missing units
+  r_units <- as.list(t_b_f$Code)
+  m_units <- setdiff(list1, r_units)
+  # failed units
+  file_2 <- register_units$data_table |> 
+   filter(Status %in% "FAILED")
+  list_2 <- as.list(file_2$Code)
+  #print feedback
+  if(length(m_units) > 0  & length(list_2) > 0){
+   comment <- paste("FAIL: Missing units - ", 
+                    paste(unlist(m_units), collapse = ", "),";",
+                    "Failed units - ",paste(unlist(list_2), collapse = ", "))
+  }else if(length(m_units)> 0){
+   comment <- paste("FAIL: Missing units - ",
+                    paste(unlist(m_units), collapse = ", "))
+  }else if(length(list_2)> 0){
+   comment <- paste("FAIL: Failed units - ",
+                    paste(unlist(list_2), collapse = ", "))
+  }else if(length(m_units)== 0  & length(list_2) == 0 & student_year == 4){
+   comment <- paste("PASS: Final class is",class)
+  }else{
+   comment <- paste("PASS: Promoted to the next Year")
+  }
+  #prepare templates
+  if(student_year == 1){
+   # Render the R Markdown template with the data
+   render_result <- rmarkdown::render("transcript1.Rmd",
+                                      output_file = paste(reg_No,
+                                                          "_transcript.html"),
+                                      params = list(data1 = table_data1,
+                                                    name = r_name,
+                                                    reg = reg_no,
+                                                    course = prog,
+                                                    date = date,
+                                                    id = id,
+                                                    ddate =  stamp_datee,
+                                                    comment = comment
+                                      )
+   )
+  }else if(student_year == 2){
+   # Render the R Markdown template with the data
+   render_result <- rmarkdown::render("transcript2.Rmd",
+                                      output_file = paste(reg_No,
+                                                          "_transcript.html"),
+                                      params = list(data1 = table_data1,
+                                                    data2 = table_data2,
+                                                    name = r_name,
+                                                    reg = reg_no,
+                                                    course = prog,
+                                                    date = date,
+                                                    id = id,
+                                                    ddate =  stamp_datee,
+                                                    comment = comment
+                                      )
+   )
+  }else if(student_year == 3){
+   # Render the R Markdown template with the data
+   render_result <- rmarkdown::render("transcript3.Rmd",
+                                      output_file = paste(reg_No,
+                                                          "_transcript.html"),
+                                      params = list(data1 = table_data1,
+                                                    data2 = table_data2,
+                                                    data3 = table_data3,
+                                                    name = r_name,
+                                                    reg = reg_no,
+                                                    course = prog,
+                                                    date = date,
+                                                    id = id,
+                                                    ddate =  stamp_datee,
+                                                    comment = comment
+                                      )
+   )
+  }else if(student_year == 4){
+   # Render the R Markdown template with the data
+   render_result <- rmarkdown::render("transcript4.Rmd",
+                                      output_file = paste(reg_No,
+                                                          "_transcript.html"),
+                                      params = list(data1 = table_data1,
+                                                    data2 = table_data2,
+                                                    data3 = table_data3,
+                                                    data4 = table_data4,
+                                                    name = r_name,
+                                                    reg = reg_no,
+                                                    course = prog,
+                                                    date = date,
+                                                    id = id,
+                                                    ddate =  stamp_datee,
+                                                    comment = comment
+                                      )
+   )
+  }else{
+   return
+  }
+  #update timeline
+  Users <- r_name
+  reg_no <- reg_no
+  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+  Actions <- "PRINT TRANSCRIPT"
+  Description <- paste("Printed transcript: ",reg_no,"_transcript.pdf") 
+  #write changes
+  timeline_query <- paste0("INSERT INTO student_timeline
+                  VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
+  DBI::dbSendQuery(con,timeline_query)
+  #convert HTML to a pdf file
+  pdf <- chrome_print(input = render_result,
+                      output = paste(reg_no,"_transcript.pdf"))
+  #PDF ready
+  resetLoadingButton("transcripts")
+  showToast("info", "Transcripts ready!",
+            .options = myToastOptions )
+  # Show the download link
+  shinyjs::show("download") 
+  #once download is clicked
+  output$download <- downloadHandler(
+   filename =  paste(reg_no,"_transcript.pdf"),
+   content = function(file) {
+    file.copy(pdf, file)
+   }
+  )
+ })
+ # create a supplementry registration
+ observeEvent(input$type, {
+  student_reg <- input$student_reg 
+  #student details
+  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  student_data <- data |>
+   filter(Serial %in%student_reg)
+  student_year <- student_data$Year 
+  student_course <- student_data$Code 
+  if(input$type %in% "SUPPLEMENTARY"){
+   #already registered units
+   register_units$data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   # create a table for a specific student
+   student_reg_units <- register_units$data_table |> 
+    filter(Serial %in% student_reg) |>
+    filter(Year %in% student_year) |>
+    arrange(Code)
+   # failed units
+   failed_units <- student_reg_units |> 
+    filter(Status %in% "FAILED" & Type != "SUPPLEMENTARY")
+   updateSelectizeInput(
+    session = session,
+    inputId = "register_code",
+    choices = failed_units$Code,
+    selected = "",
+    server = TRUE,
+    options = list(maxOptions = 3)
+   )
+  }else{
+   # update field with unregistered units only
+   units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+   student_units <- units |>
+    filter(course %in% c("BOTH",student_data$Code)) |>
+    filter(year %in% student_year)
+   # create a table for a specific student
+   student_reg_units <- register_units$data_table |> 
+    filter(Serial %in% student_reg) |>
+    filter(Year %in% student_year) |>
+    arrange(Code)
+   list1 <- as.list(student_units$code)
+   list2 <- as.list(student_reg_units$Code)
+   list <- setdiff(list1, list2)
+   updateSelectizeInput(
+    session = session,
+    inputId = "register_code",
+    choices = list,
+    selected = "",
+    server = TRUE,
+    options = list(maxOptions = 3) 
+   )
+  }
+ })
   # create registration deadline
   observe({
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
@@ -992,7 +1574,7 @@ observeEvent(input$register, {
   if(input$register_code == ""){
    showToast("info", "Select a Unit!",
              .options = myToastOptions )
-  }else if(input$register_code != "" && reg_no != ""){
+  }else if(input$register_code != "" && reg_no != "" ){
    req(input$register_unit)
    req(input$register_code)
    #student details
@@ -1005,12 +1587,26 @@ observeEvent(input$register, {
    Type <- input$type
    student_year <- student_data$Year
    Date <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+   if(input$type != "SUPPLEMENTARY"){
    # Insert data into the database
    insert_query <- paste0("INSERT INTO registered_units (Serial, Name, Code,
                            Course, Status, Type,Year)
                            VALUES('",student_reg,"','",student_name,"','",Code,"',
                            '",Course,"','REGISTERED','FIRST ATTEMPT','",student_year,"')")
    DBI::dbExecute(con,insert_query)
+   }else{
+    Status = "REGISTERED"
+    insert_query <- sprintf("UPDATE registered_units 
+                            SET Type = '%s', Status = '%s'
+                            WHERE Serial = '%s' AND Code = '%s'",
+                            Type, Status, student_reg, Code )
+    DBI::dbSendQuery(con,insert_query)
+    updateSelectizeInput(
+     session = session,
+     inputId = "type",
+     selected = ""
+    )
+   }
    register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))   
    # update field with unregistered units only
    units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
@@ -1064,14 +1660,21 @@ observeEvent(input$register, {
   }else{
    return()
   }
+  resetLoadingButton("register")
+  
   })
  observeEvent(input$reg, {
+  updateTextInput(
+   session = session,
+   inputId = "grade",
+   value = ""
+  )
   if(input$id == "0"){
   register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
   # Registered but with no marks units
   registered_units <- register_units$data_table |> 
    filter(Serial %in% input$reg) |>
-   filter(is.na(Score))
+   filter(is.na(Score) | Status == "REGISTERED")
   # update student name
   x <- input$reg
   name_df <- registered_units |> 
@@ -1108,23 +1711,70 @@ observeEvent(input$register, {
     value = course_title
    )
    }
+   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   # check exam type
+   exam_type <- data_table |> 
+    filter(Serial %in% input$reg) |>
+    filter(Code %in% input$code)|>
+    select(Type)
+   if(exam_type %in% "FIRST ATTEMPT" | input$code == ""){
+    updateTextInput(session, "grade", label = "Grade")
+    updateNumericInput(session, "score", "Score")
+   }else{
+    updateTextInput(session, "grade", label = "Grade *")
+    updateNumericInput(session, "score", "Score *")
+   }
   })
   observeEvent(input$score,{
-   #set a grade on scale
-   z <- input$score
-   grade <- case_when(
-    z >= 70 ~ "A",
-    z >= 60 ~ "B",
-    z >= 50 ~ "C",
-    z >= 40 ~ " D",
-    z >= 1 ~ "E",
-    TRUE ~ ""
-   )
-   updateTextInput(
-    session = session,
-    inputId = "grade",
-    value = grade
-   )
+   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   # check exam type
+   exam_type <- data_table |> 
+    filter(Serial %in% input$reg) |>
+    filter(Code %in% input$code)|>
+    select(Type)
+   x <- input$score
+   if(exam_type %in% "FIRST ATTEMPT" | input$code == ""){
+    #set a grade on scale
+    grade <- case_when(
+     x >= 70 ~ "A",
+     x >= 60 ~ "B",
+     x >= 50 ~ "C",
+     x >= 40 ~ " D",
+     x >= 1 ~ "E",
+     TRUE ~ ""
+    )
+    updateTextInput(
+     session = session,
+     inputId = "grade",
+     value = grade
+    )
+    if(x > 99 |is.na(x)| x < 1 | nchar(x) > 2) {
+     updateNumericInput(
+      session = session,
+      inputId = "score",
+      value = ""
+     )
+    }else {
+     return()
+    }
+   }else{
+    if(x > 50 | is.na(x)| x < 40 | nchar(x) > 2) {
+     updateNumericInput(
+      session = session,
+      inputId = "score",
+      value = ""
+     )
+     #set a grade on scale
+     z <- input$score
+     updateTextInput(
+      session = session,
+      inputId = "grade",
+      value = "D*"
+     )
+    }else{
+     return()
+    }
+  }
   })
   # Render the DataTable
   output$marks <- renderDataTable({
@@ -1367,12 +2017,20 @@ observeEvent(input$register, {
   search_string <- paste0("approve_ ",selectedRow)
   row <- selected_data[grepl(search_string, selected_data$Actions), ]
   action <- row$Actions
-  Status <- "APPROVED"
+  score <- row$Score
+  if(score > 40){
+   Status <- "PASSED"
+  }else if(score < 40){
+   Status <- "FAILED"
+  }else{
+   return()
+  }
   # change color for edited rows
   button <- action
   new_button <- gsub("background-color: #e9ecef;", 
                      "background-color: #0025ff8f;", button)
-  edited_buttons <- gsub("RELEASED","APPROVED",new_button)
+  edited_buttons_1 <- gsub("RELEASED",Status, new_button)
+  edited_buttons <- gsub("FAILED",Status, edited_buttons_1)
   # create the query
   update_query <- sprintf("UPDATE registered_units SET
                            Status = '%s',
@@ -1398,7 +2056,127 @@ observeEvent(input$register, {
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
   DBI::dbSendQuery(con,timeline_query)
  })
+ observe({
+ #output value boxes
+ current_year <- lubridate::year(Sys.Date())
+ current_date <- format(Sys.Date(), "%d-%m-%Y")
+ previous_year <- current_year - 1
+ previous_day1 <- Sys.Date() - 1
+ previous_day <- format(previous_day1, "%d-%m-%Y")
+ #year
+ n_c <- data$table_data [grepl(current_year, data$table_data$Date), ] |>
+  nrow()
+ n_p <- data$table_data[grepl(previous_year, data$table_data$Date), ] |>
+  nrow()
+ per_n <- (((n_c-n_p)/n_p)*100) |> round(2)
+ #day
+ c_d <- register_units$data_table[grepl(current_date, register_units$data_table$Date), ] |>
+  nrow()
+ p_d <- register_units$data_table [grepl(previous_day, register_units$data_table$Date), ] |>
+  nrow()
+ per_d <- (((c_d-p_d)/p_d)*100) |> round(2)
+ ####
  
+ output$registered_no <- renderValueBox({
+  value <- n_c |>
+   prettyNum(big.mark =',', scientific = FALSE)
+  color <- my_color(per_n)
+  arrow <- my_symbol(per_n)
+  my_valuebox(value,  
+              title = "NO.OF STUDENTS",
+              subtitle = tagList(HTML(arrow), paste0(abs(per_n),"% since last year")),
+              icon = icon("pencil"),
+              color = color
+  )
+ })
+ ###
+ output$available_marks <- renderValueBox({
+  value <- c_d |>
+   prettyNum(big.mark =',', scientific = FALSE)
+  color <- my_color(per_d)
+  arrow <- my_symbol(per_d)
+  my_valuebox(value,  
+              title = "RELEASED RESULTS",
+              subtitle = tagList(HTML(arrow), paste0(abs(per_d),"% since yesterday")),
+              icon = icon("pencil"),
+              color = color
+  )
+ })
+ miss_today <- register_units$data_table [grepl("REGISTERED", register_units$data_table$Status), ] |>
+  filter(Date %in% current_date) |> nrow()
+ miss_yester <- register_units$data_table[grepl("REGISTERED", register_units$data_table $Status), ] |>
+  filter(Date %in% previous_day) |> nrow()
+ miss_per <- (((miss_today-miss_yester)/miss_yester)*100) |> round(2)
+ output$missing_marks <- renderValueBox({
+  value = miss_today |>
+   prettyNum(big.mark =',', scientific = FALSE)
+  color <- my_color(miss_per)
+  arrow <- my_symbol(miss_per)
+  my_valuebox(value,  
+              title = "MISSING MARKS",
+              subtitle = tagList(HTML(arrow), paste0(abs(miss_per),"% since yesterday")),
+              icon = icon("pencil"),
+              color = color
+  )
+ })
+ ####
+ fail_today <- register_units$data_table [grepl("FAILED", register_units$data_table $Status), ] |>
+  filter(Date %in% current_date) |> nrow()
+ fail_yester <- register_units$data_table [grepl("FAILED", register_units$data_table $Status), ] |>
+  filter(Date %in% previous_day) |> nrow()
+ fail_per <- (((fail_today-fail_yester)/fail_yester)*100) |> round(2)
+ output$failed_marks <- renderValueBox({
+  value = fail_today |>
+   prettyNum(big.mark =',', scientific = FALSE)
+  color <- my_color(fail_per)
+  arrow <- my_symbol(fail_per)
+  my_valuebox(value,  
+              title = "FAILED MARKS",
+              subtitle = tagList(HTML(arrow), paste0(abs(fail_per),"% since yesterday")),
+              icon = icon("pencil"),
+              color = color
+  )
+ })
+ ####
+ prom_ready <- data$table_data |> 
+  filter(Year %in% c(1,2,3))
+ prom_current <-   prom_ready [grepl(current_date,   prom_ready $Date), ] |> nrow()
+ prom_previous <-   prom_ready [grepl(previous_day,   prom_ready $Date), ] |> nrow()
+ prom_per <- (((prom_current-prom_previous)/prom_previous)*100) |> round(2)
+ output$waiting_promotion <- renderValueBox({
+  value = prom_current |>
+   prettyNum(big.mark =',', scientific = FALSE)
+  color <- my_color(prom_per)
+  arrow <- my_symbol(prom_per)
+  my_valuebox(value,  
+              title = "PENDING PROMOTIONS",
+              subtitle = tagList(HTML(arrow), paste0(abs(prom_per),"% since yesterday")),
+              icon = icon("pencil"),
+              color = color
+  )
+ })
+ ####
+ ready_grad <- data$table_data |> 
+  filter(Year %in% 4)
+ grad_current1 <- ready_grad |> 
+  filter(Year %in% 4) 
+ grad_current <- grad_current1[grepl(current_year, grad_current1$Date), ] |> nrow()
+ grad_previous <- grad_current1[grepl(previous_year, grad_current1$Date), ] |> nrow()
+ grad_per <- (((grad_current-grad_previous)/grad_previous)*100) |> round(2)
+ output$grad_students <- renderValueBox({
+  value = grad_current |>
+   prettyNum(big.mark =',', scientific = FALSE)
+  color <- my_color(grad_per)
+  arrow <- my_symbol(grad_per)
+  my_valuebox(value,  
+              title = "WAITING GRADUATION",
+              subtitle = tagList(HTML(arrow), paste0(abs(grad_per),"% since last year")),
+              icon = icon("pencil"),
+              color = color
+  )
+ })
+ 
+ })
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends
    })

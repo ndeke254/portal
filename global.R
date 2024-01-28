@@ -39,7 +39,7 @@ source("user_timeline.R")
 # Define the fields we want to save from the form
 marks_fields <- c("reg", "name", "code", "course",
                   "score", "grade", "time", "lecturer","actions","student_year")
-users <- c("DR.JOHN", "PROF.MAKORE", "MR.WAMAE", "MS.MUTUA", "DR.OCHIENG")# nolint
+users <- c("Dr. John", "Prof. Makore", "Mr. Wamae", "Ms. Mutua", "Dr. Ochieng")# nolint
 reg_fields <- c("Name",	"Gender",	"ID",	"Reg","Code","Course", "Date",	"Buttons","Year")
 # use this list for all your toasts
 myToastOptions <- list( # nolint

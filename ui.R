@@ -1,5 +1,10 @@
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
+ footer =  tags$div(
+  class = "moving-sentence",
+  style = "padding-top: 20px; padding-bottom: 20px;",
+  paste0("ANNOUNCEMENT: Kindly note that Course Registration will close on 10 Feb 2024 for this Semester.")
+  ),
  windowTitle = tags$head(
   tags$link(rel = "icon",
             type = "image/png",
@@ -244,10 +249,13 @@ ui <- navbarPage(
    )
   ),
   div(
-   style = "padding: 30px;",
-   actionBttn("register",label = "Register")
-   )
-  )),
+   loadingButton("register", "Register",
+                 style = "width: 110px;margin-top: 30px;",
+                 loadingLabel = "Registering",
+                 loadingSpinner = "cog")
+  )
+  )
+  ),
   column(6, align = "center",
          tags$div(
           style = "color: red; font-weight: bold;",
