@@ -1,9 +1,10 @@
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
  footer =  tags$div(
+  tags$hr(),
   class = "moving-sentence",
   style = "padding-top: 20px; padding-bottom: 20px;",
-  paste0("ANNOUNCEMENT: Kindly note that Course Registration will close on 10 Feb 2024 for this Semester.")
+  textOutput("announcement")
   ),
  windowTitle = tags$head(
   tags$link(rel = "icon",
@@ -120,13 +121,29 @@ ui <- navbarPage(
            )
            ),
     column(3, align = "center",
-      textOutput("remaining_time"),
-      br(),
+           textOutput("remaining_time"),
+           br(),
       shinyWidgets::progressBar(id = "progress_bar",
                                 value = 50
                                 )
-      )
-      )
+      ),
+    
+    column(3, align = "center",
+           box(
+            solidHeader = TRUE,
+            status = "primary",
+            width = 12,
+           textAreaInput(inputId = "post_writeup",
+                         label = "NOTICE",
+                         value = "",
+                         placeholder = "Enter your announcement here..."),
+           br(),
+           tags$div(
+            actionButton("post","Post",icon = icon("bullhorn")),
+            actionButton("unpost","Edit",icon = icon("pencil"))
+           )
+    ))
+    )
     ),
    tabPanel(
     title = "REGISTRATION",

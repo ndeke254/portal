@@ -92,8 +92,8 @@ server <- function(input, output, session){
   
   }else{
    button <- data$table_data |>
-    arrange(desc(Date)) |>
     select(Actions) 
+    
    button  <- button[[1,1]]
    # Find all IDs containing a number
    ids <- str_extract_all(button, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
@@ -1438,6 +1438,22 @@ server <- function(input, output, session){
   # create registration deadline
   observe({
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
+  status <- admin_file[[2,3]]
+  get <- admin_file[[2,2]]
+  if(status == 1){
+   updateTextAreaInput(
+    session = session,
+    inputId = "post_writeup",
+    value = get
+   )
+   output$announcement <- renderText({
+   paste0("NOTICE: ", get)
+   })
+   disable("post_writeup")
+  }else{
+   hide("announcement")
+   enable("post_writeup")
+  }
   invalidateLater(1000, session)
   time1 <- as.POSIXct(admin_file[[1,2]], tz = "Africa/Nairobi")
   time2 <- as.POSIXct(Sys.time(), tz = "Africa/Nairobi")
@@ -1492,6 +1508,8 @@ server <- function(input, output, session){
  })
  # close course registration
   observeEvent(input$close, {
+   enable("select_time")
+   enable("target_date")
    admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
    # Update the MySQL table
     query <- sprintf("UPDATE administrator_file SET close = '%s' WHERE id = 1",
@@ -1500,9 +1518,6 @@ server <- function(input, output, session){
     # reload table
     # Reload data from MySQL after deleting the row
     updated_data <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
-    # Update the Shiny reactiveValues with the updated data
-    data$table_data  <- as.data.table(updated_data) 
-    # update switch input
     updateSwitchInput(session = session,
                       inputId = "switch",
                       value = FALSE)
@@ -1516,6 +1531,9 @@ server <- function(input, output, session){
   })
   ####admin control of dates
   observeEvent(input$open, {
+   disable("select_time")
+   disable("target_date")
+   
    shinyjqui::jqui_show("#flip", effect = "fade")
    shinyjqui::jqui_show("#table", effect = "fade")
    date <- format(input$target_date, "%Y-%m-%d")
@@ -2175,7 +2193,32 @@ observeEvent(input$register, {
               color = color
   )
  })
- 
+ observeEvent(input$post, {
+  disable("post_writeup")
+  shinyjs::show("announcement")
+  # Update the MySQL table
+  query <- sprintf("UPDATE administrator_file SET close = '%s', seconds = '%s'
+                    WHERE id = 2", input$post_writeup, 1)
+  dbExecute(con, query)
+  admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
+  get <- admin_file[[2,2]]
+  output$announcement <- renderText({
+   paste0("NOTICE: ", get)
+  })
+ })
+ observeEvent(input$unpost, {
+  enable("post_writeup")
+  hide("announcement")
+  updateTextAreaInput(
+   session = session,
+   inputId = "post_writeup",
+   value = ""
+   )
+  # Update the MySQL table
+  query <- sprintf("UPDATE administrator_file SET close = '%s', seconds = '%s'
+                    WHERE id = 2", "", 0)
+  dbExecute(con, query)
+ })
  })
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends

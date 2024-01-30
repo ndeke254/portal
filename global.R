@@ -21,6 +21,29 @@ library(dotenv)
 library(DBI)
 library(data.table)
 library(shinydashboardPlus)
+library(bslib)
+default <- bs_theme(version = 4)
+theme_toggle <- function() {
+ div(
+  class = "custom-control custom-switch",
+  tags$input(
+   id = "custom_mode",
+   type = "checkbox",
+   class = "custom-control-input",
+   onclick = HTML(
+    "Shiny.setInputValue(
+          'dark_mode',
+          document.getElementById('custom_mode').value
+        );"
+   )
+  ),
+  tags$label(
+   "Custom mode?",
+   `for` = "custom_mode",
+   class = "custom-control-label"
+  )
+ )
+}
 # Retrieve database credentials
 dotenv::load_dot_env()
 host <- Sys.getenv("DB_HOST")

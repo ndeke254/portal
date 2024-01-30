@@ -2,37 +2,34 @@ library(shiny)
 library(shinyjs)
 
 ui <- fluidPage(
- useShinyjs(),
+ useShinyjs(),  # Initialize shinyjs
+ 
+ # Define custom CSS to make the textarea expandable
  tags$head(
-  tags$style(HTML("
-      .moving-sentence {
-        color: red;
-        font-weight: 700;
-        white-space: nowrap;
-        overflow: hidden;
-        position: absolute;
-      }
-    "))
+  tags$style(
+   HTML(".expandable-input {
+             resize: vertical;
+             min-height: 40px;
+             }")
+  )
  ),
- mainPanel(
-  div(class = "moving-sentence", "This is a moving sentence.")
- )
-)
+ 
+ # Create the expandable input
 
 server <- function(input, output, session) {
- shinyjs::runjs('
-    var container = $(".moving-sentence");
-    container.css("left", "100%");
-
-    function moveSentence() {
-      container.animate({left: "-100%"}, 30000, "linear", function() {
-        container.css("left", "100%");
-        moveSentence();
-      });
-    }
-
-    moveSentence();
-  ')
+ # Add shinyjs code to resize the textarea dynamically
+ runjs(
+  "shinyjs.resizeTextarea = function() {
+       var textarea = $('#expandable_input');
+       textarea.height(0);
+       textarea.height(textarea[0].scrollHeight);
+     }"
+ )
+ 
+ # Observe changes in the input and trigger the resizing function
+ observe({
+  runjs("shinyjs.resizeTextarea();")
+ })
 }
 
 shinyApp(ui, server)
