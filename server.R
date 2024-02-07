@@ -1480,10 +1480,10 @@ server <- function(input, output, session){
    minutes <- floor(time_difference_2 / 60)
    seconds <- round(time_difference_2 %% 60, 0)
    #output flip time countdown
-   output$days <- renderText(paste0(days, " days"))
-   output$hours <- renderText(paste0(hours, " hours"))
-   output$minutes <- renderText(paste0(minutes, " minutes"))
-   output$seconds <- renderText(paste0(seconds, " seconds"))
+   output$days <- renderText(days)
+   output$hours <- renderText(hours)
+   output$minutes <- renderText(minutes)
+   output$seconds <- renderText(seconds)
    # update progress bar
    progress_value <- (time_difference/as.numeric(admin_file[[1,3]]))* 100
    updateProgressBar(session, "progress_bar", value = progress_value)

@@ -11,10 +11,11 @@
 .container, .container-fluid, .container-xl, .container-lg, 
 .container-md, .container-sm {
     width: 100%;
-    padding-right: 15px;
-    padding-left: 15px;
+    padding-right: 5px;
+    padding-left: 5px;
 }
 body {
+ background-color: #e9ecef;
  font-size: 13px;
 }
 label {
@@ -24,6 +25,7 @@ label {
 .form-control {
  font-size: 13px;
  border-radius: 0.2rem;
+ background-color: #ffffff9c;
 }
 .btn {
     font-size: 13px;
@@ -61,8 +63,8 @@ label {
     box-shadow: 0px 0px 10px 0px rgb(0 0 0 / 77%);}
     
 .navbar.navbar-default {
-    box-shadow: 0px 0px 6px 0px #000000;
-    background-image: linear-gradient(264deg, #bed1e5, #ffffff94);
+    box-shadow: 0px 0px 9px 0px #0000006b;
+    background-image: linear-gradient(270deg, #bed1e5, #ffffff94);
 }
 img {
  width: 75px;
@@ -112,11 +114,13 @@ img {
  border: 1px solid #767676;
 }
 #transcripts{
+ margin-left: 165px;
  height: 35.0px;
  border: 1px solid #767676;
 }
 #register{
- margin-left: 56px;
+ margin-left: 25px;
+ margin-top: 25px;
  height: 35.0px;
  border: 1px solid #767676;
 }
@@ -282,28 +286,11 @@ button#registerButton {
     border-color: #c1c9d0;
     box-shadow: 0 0 0 0.0rem rgb(189 192 196 / 50%);
 }
-div#student_marks {
- margin-bottom: 110px;
- max-width: fit-content; 
-}
 .student_entry {
  align-items: center; 
  justify-content: center;
 }
-div#student_name {
- margin-top: 120px;
- font-weight: 700;
- font-size: 15px;
- text-align: center;
- text-transform: uppercase;
-}
-div#student_course {
- font-weight: 700;
- font-size: 15px;
- margin-bottom: -120px;
- text-align: center;
- text-transform: uppercase;
-}
+
 span#sf-loading-button-registerButton {
     padding-left: 100px;
 }
@@ -368,9 +355,7 @@ h1, .h1 {
      background: #7583a1;
 }
 a#download {
-    margin-left: 130px;
-    margin-top: -50px;
-    background-color: #007bff;
+    margin-top: -55px;
 }
 .card, .well {
     background-color: transparent;
@@ -468,9 +453,10 @@ button#open {
     font-size: 14px;
 }
 .box {
-    border-radius: 15px;
+    border-radius: 10px;
     background: #e9ecef;
-    margin-bottom: 24px;
+    margin-bottom: 25px;
+    margin-top: 15px;
 }
 .box-header .box-title, .box-header>.fa, .box-header>.glyphicon, .box-header>.ion {
  font-weight: 900;
@@ -501,7 +487,8 @@ div#remaining_time {
     font-size: x-large;
 }
 div#notice {
-    margin-top: 35px;
+    text-wrap: balance;
+    text-align: center;
 }
 .fa-marker:before {
     zoom: 1.5;
@@ -543,8 +530,57 @@ div#notice {
         font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
-        position: absolute;
+        position: relative;
       }
 .tabbable {
-    padding-top: 80px;
+    padding-top: 60px;
+}
+.announcement_container {
+    width: -webkit-fill-available;
+}
+.social {
+    display: inline-block;
+    padding-inline-start: 20px;
+}
+.p7 {
+    zoom: 1.5;
+    text-align: -webkit-center;
+}
+.nav-tabs {
+    font-weight: 900;
+    padding: 25px;
+    border-bottom: 1px solid #c9c9c9;
+
+}
+.nav-tabs .nav-link, .nav-tabs>li>a, .nav-tabs .nav-pills>li>a, .nav-tabs ul.nav.navbar-nav>li>a {
+    border: 0px solid transparent;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.nav>li>a:active, .nav>li>a:focus, .nav>li>a:hover {
+    color: #444;
+    border-radius: 5px;
+    background: #3d3a3a26;
+}
+.nav-tabs .nav-link.active, .nav-tabs>li>a.active, .nav-tabs .nav-pills>li>a.active, .nav-tabs ul.nav.navbar-nav>li>a.active, .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-item.in .nav-link, .nav-tabs .nav-item.show .nav-tabs>li>a, .nav-tabs .nav-item.in .nav-tabs>li>a, .nav-tabs .nav-item.show .nav-pills>li>a, .nav-tabs .nav-item.in .nav-pills>li>a, .nav-tabs>li.show .nav-link, .nav-tabs>li.in .nav-link, .nav-tabs>li.show .nav-tabs>li>a, .nav-tabs>li.in .nav-tabs>li>a, .nav-tabs>li.show .nav-pills>li>a, .nav-tabs>li.in .nav-pills>li>a, .nav-tabs .nav-pills>li.show .nav-link, .nav-tabs .nav-pills>li.in .nav-link, .nav-tabs .nav-pills>li.show .nav-tabs>li>a, .nav-tabs .nav-pills>li.in .nav-tabs>li>a, .nav-tabs .nav-pills>li.show .nav-pills>li>a, .nav-tabs .nav-pills>li.in .nav-pills>li>a, .nav-tabs .nav-item.show ul.nav.navbar-nav>li>a, .nav-tabs .nav-item.in ul.nav.navbar-nav>li>a, .nav-tabs>li.show ul.nav.navbar-nav>li>a, .nav-tabs>li.in ul.nav.navbar-nav>li>a, .nav-tabs .nav-pills>li.show ul.nav.navbar-nav>li>a, .nav-tabs .nav-pills>li.in ul.nav.navbar-nav>li>a, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) .nav-link, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) .nav-link, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) .nav-tabs>li>a, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) .nav-tabs>li>a, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) .nav-pills>li>a, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) .nav-pills>li>a, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) ul.nav.navbar-nav>li>a, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) ul.nav.navbar-nav>li>a {
+    color: #495057;
+    background-color: #3d3a3a12;
+    border-color: #dee2e6 #dee2e6 #fff;
+    border-radius: 5px;
+}
+.selectize-input, .selectize-control.single .selectize-input.input-active {
+    background: #ffffff9c;
+}
+.selectize-input.full {
+ background-color: #e9ecef;
+}
+div#student_name {
+    text-align: center;
+}
+div#student_course {
+    text-align: center;
+}
+.time {
+    margin-left: 20px;
+    text-align: center;
 }

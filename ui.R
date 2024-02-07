@@ -1,10 +1,37 @@
 ui <- navbarPage(
  position = c("fixed-top"), # nolint
- footer =  tags$div(
+ footer = tags$div(
   tags$hr(),
+  tags$div(
+   class = "p7",
+    tags$div(
+    class = "social",
+    actionLink("linkedin",
+               label = "",
+               icon = icon("linkedin"),
+               onclick = "window.open('https://www.linkedin.com/in/jefferson-ndeke-027062202/')")
+   ),
+   tags$div(
+    class = "social",
+    actionLink("github",
+               label = "",
+               icon = icon("github"),
+               onclick = "window.open('https://github.com/ndeke254')")
+   ),
+   tags$div(
+    class = "social",
+    actionLink("twitter",
+               label = "",
+               icon = icon("twitter"),
+               onclick = "window.open('https://twitter.com/jefferson_ndeke')")
+    )
+  ),
+  class = "announcement_container",
+  tags$div(
   class = "moving-sentence",
   style = "padding-top: 20px; padding-bottom: 20px;",
   textOutput("announcement")
+  )
   ),
  windowTitle = tags$head(
   tags$link(rel = "icon",
@@ -21,10 +48,14 @@ ui <- navbarPage(
   useShinyFeedback(),
   useShinydashboard(),
   includeCSS("www/styles.css"),
-  bsTooltip("reset","Reset","right","hover"),
   tabsetPanel(
    tabPanel(
     title = "RESULTS",
+    box(
+     title = "Enter Student Details",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
   splitLayout(
    cellWidths = c("10.286%","14.286%","5.286%", # nolint
                   "24.286%","5.286%","4.286%","10.286%"), # nolint
@@ -61,9 +92,16 @@ ui <- navbarPage(
                   loadingLabel = "Entering",
                   loadingSpinner = "cog")
     )
-   ),
+  )
+  ),
   tags$hr(),
+  box(
+   title = "Released Exam Results",
+   solidHeader = TRUE,
+   status = "primary",
+   width = 12,
   DT::dataTableOutput("marks")
+  )
   ),
   tabPanel(
    title = "LESSONS"
@@ -77,7 +115,12 @@ ui <- navbarPage(
   tabsetPanel(
    tabPanel(
     title = "STATISTICS",
-    fluidRow(
+     box(
+      title = "Real-time Track",
+      solidHeader = TRUE,
+      status = "primary",
+      width = 12,
+      fluidRow(
      valueBoxOutput("registered_no",
                    width = 2),
      valueBoxOutput("available_marks",
@@ -90,17 +133,26 @@ ui <- navbarPage(
                    width = 2),
      valueBoxOutput("grad_students",
                    width = 2)
+     )
      ),
-    h1("SET REGISTRATION DATE"),
-    br(),
-    fluidRow(
+    box(
+     title = "Course Registration",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     fluidRow(
      column(12, align = "center",
      br(),
      switchInput(inputId = "switch")
      )
-     ),
+    ),
     fluidRow(
     column(3,  align = "center",
+           box(
+            title = "Set Date/Time",
+            solidHeader = TRUE,
+            status = "primary",
+            width = 12,
     dateInput("target_date", "Select a End Date:", 
               format = "dd-mm-yyyy",
               min = Sys.Date()
@@ -110,31 +162,42 @@ ui <- navbarPage(
     tags$div(
     actionButton("open","Open",icon = icon("unlock")), 
     actionButton("close","Close",icon = icon("lock"))
-    )
+    ))
     ),
     column(3, align = "center",
-           h1("Your proposed Close Date and Time is:"),
+           box(
+            title = "End Date/Time",
+            solidHeader = TRUE,
+            status = "primary",
+            width = 12,
            textOutput("flip_time"),
            tags$div(
             id = "table",
            DT::dataTableOutput("set_time")
            )
+           )
            ),
     column(3, align = "center",
+           box(
+            title = "CountDown",
+            solidHeader = TRUE,
+            status = "primary",
+            width = 12,
            textOutput("remaining_time"),
            br(),
       shinyWidgets::progressBar(id = "progress_bar",
                                 value = 50
                                 )
+      )
       ),
-    
     column(3, align = "center",
            box(
+            title = "Write Notice",
             solidHeader = TRUE,
             status = "primary",
             width = 12,
            textAreaInput(inputId = "post_writeup",
-                         label = "NOTICE",
+                         label = "",
                          value = "",
                          placeholder = "Enter your announcement here..."),
            br(),
@@ -142,11 +205,18 @@ ui <- navbarPage(
             actionButton("post","Post",icon = icon("bullhorn")),
             actionButton("unpost","Edit",icon = icon("pencil"))
            )
-    ))
+           )
+           )
+    )
     )
     ),
    tabPanel(
     title = "REGISTRATION",
+    box(
+     title = "Enter Student Details",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
   splitLayout(
    cellWidths = c("18.286%","8.286%","9.286%", # nolint
                   "5.286%","12.286%","24.286%","0%","2.286%"
@@ -198,51 +268,67 @@ ui <- navbarPage(
                style = "width: 110px;margin-top: 30px;",
                loadingLabel = "Registering",
                loadingSpinner = "cog")
-   ),
+   )
+  ),
   tags$hr(),
+  box(
+   title = "Registered Students Details",
+   solidHeader = TRUE,
+   status = "primary",
+   width = 12,
   DT::dataTableOutput("registrationTable")
   )
+   )
   )
   ),
  tabPanel(
   title = "Student",
   value = "student",
   icon = icon("children"),
-  textOutput("student_name"),
-  textOutput("student_course"),
-  div(style = " margin-top: 45px;
-                margin-left: 1100px;
-                position: absolute;",
-  progress_circle(value = 0, 
-                shiny_id = "bar",
-                color = "green",
-                trail_width = 4,
-                width = "100%",
-                height = "100px",
-                )
-  ),
   tabsetPanel(
    tabPanel(
    title = "TIMETABLE",
-  splitLayout(
-   cellWidths = c("10.286%","5.286%","24.286%","5.286%"),
- selectizeInput(
-  inputId = "student_reg",
-  label = "Registration number", # nolint
-  multiple = FALSE,
-  choices = NULL
-  )
- ),
- tags$hr(),
- h1("Student Timetable"),
+   box(
+    title = "Student Details",
+    solidHeader = TRUE,
+    status = "primary",
+    width = 12,
+    splitLayout(
+     selectizeInput(
+      inputId = "student_reg",
+      label = "Registration number", # nolint
+      multiple = FALSE,
+      choices = NULL
+     ),
+    textOutput("student_name"),
+    textOutput("student_course"),
+    progress_circle(value = 0, 
+                        shiny_id = "bar",
+                        color = "green",
+                        trail_width = 4,
+                        width = "100%",
+                        height = "100px",
+                    )
+    )
+    ),
+   tags$hr(),
+   box(
+  title = "Student Timetable",
+  solidHeader = TRUE,
+  status = "primary",
+  width = 12,
  DT::dataTableOutput("timetable"),
  br()
+ )
  ),
  tabPanel(
   title = "REGISTRATION",
-  fluidRow(
-   br(),
-  column(6,
+  br(),
+   box(
+    title = "Course Details",
+    solidHeader = TRUE,
+    status = "primary",
+    width = 12,
          splitLayout(
          disabled(
   selectizeInput(
@@ -267,29 +353,44 @@ ui <- navbarPage(
   ),
   div(
    loadingButton("register", "Register",
-                 style = "width: 110px;margin-top: 30px;",
+                 style = "width: 110px;",
                  loadingLabel = "Registering",
                  loadingSpinner = "cog")
-  )
-  )
+   
   ),
-  column(6, align = "center",
          tags$div(
           style = "color: red; font-weight: bold;",
-         textOutput("notice")
-         ),
+         textOutput("notice"),
           tags$div(id = "flip",
-                    column(1,textOutput( "days")),
-                    column(1,textOutput( "hours" )),
-                    column(1, textOutput( "minutes")),
-                    column(1,textOutput("seconds"))
-          )
+                    tags$div(
+                     class = "time",
+                     textOutput("days"),
+                     "Days"),
+                   tags$div(
+                    class = "time",
+                    textOutput("hours" ),
+                    "Hours"),
+                   tags$div(
+                    class = "time",
+                    textOutput("minutes"),
+                    "Minutes"),
+                   tags$div(
+                    class = "time",
+                    textOutput("seconds"),
+                    "Seconds")
+                   )
          )
+  )
   ),
-  h1("Student Units"),
-  DT::dataTableOutput("registered_units"),
-  br()
- ),
+  box(
+   title = "Student - Year Courses",
+   solidHeader = TRUE,
+   status = "primary",
+   width = 12,
+   DT::dataTableOutput("registered_units"),
+   br()
+   )
+  ),
  tabPanel(
   title = "RESULTS",
   br(),
@@ -299,8 +400,6 @@ ui <- navbarPage(
            solidHeader = TRUE,
            status = "primary",
            width = 12,
-           collapsible = TRUE,
-           collapsed = TRUE,
            title = "FIRST YEAR",
            DT::dataTableOutput("year_1_marks")
           )
@@ -310,8 +409,6 @@ ui <- navbarPage(
           solidHeader = TRUE,
           status = "primary",
           width = 12,
-          collapsible = TRUE,
-          collapsed = TRUE,
           title = "SECOND YEAR",
          DT::dataTableOutput("year_2_marks")
          )
@@ -323,8 +420,6 @@ ui <- navbarPage(
     solidHeader = TRUE,
     status = "primary",
     width = 12,
-    collapsible = TRUE,
-    collapsed = TRUE,
     title = "THIRD YEAR",
     DT::dataTableOutput("year_3_marks")
     )
@@ -334,8 +429,6 @@ ui <- navbarPage(
           solidHeader = TRUE,
           status = "primary",
           width = 12,
-          collapsible = TRUE,
-          collapsed = TRUE,
           title = paste("FOURTH YEAR"),
           DT::dataTableOutput("year_4_marks")
           )
@@ -346,7 +439,11 @@ ui <- navbarPage(
   title = "ANALYSIS",
   fluidRow(
    column(4,
-          h1("Final Averages"),
+          box(
+           title = "Final Averages",
+           solidHeader = TRUE,
+           status = "primary",
+           width = 12,
           DT::dataTableOutput("year_averages"),
           conditionalPanel(
            condition = "input.student_reg",
@@ -363,17 +460,28 @@ ui <- navbarPage(
                           icon = icon("download")
                         )
            )
-          ),
-   column(4,
-          h1("Final graph"),
-          echarts4rOutput("graph")
-          ),
-   column(4,
-          h1("Final Score"),
-          echarts4rOutput("clock")
+          )
+   ),
+  column(4,
+  box(
+   title = "Final graph",
+   solidHeader = TRUE,
+   status = "primary",
+   width = 12,
+   echarts4rOutput("graph")
    )
+  ),
+  column(4,
+  box(
+   title = "Final Score",
+   solidHeader = TRUE,
+   status = "primary",
+   width = 12,
+   echarts4rOutput("clock")
    )
   )
+  )
  )
+  )
  )
  )
