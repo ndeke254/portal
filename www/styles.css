@@ -149,7 +149,7 @@ table.dataTable {
 }
 .page-item.active .page-link {
     z-index: 3;
-    border-radius: 5px;
+    border-radius: 20px;
     color: #484242;
     background-color: #ffffff;
     border-color: #164e8ba1;
@@ -581,4 +581,11 @@ div#student_course {
 }
 .progress {
     background-color: #a5a5a5;
+}
+.pagination>li>a {
+    margin: 1px;
+    border-radius: 20px;
+}
+.fa-x:before {
+    color: red;
 }
