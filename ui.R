@@ -441,6 +441,13 @@ ui <- navbarPage(
           status = "primary",
           width = 12,
           splitLayout(
+           selectizeInput(
+            inputId = "type",
+            label = "Exam Type", # nolint
+            multiple = FALSE,
+            choices = c("FIRST ATTEMPT", "RETAKE 1",
+                        "RETAKE 2", "SUPPLEMENTARY")
+           ),
             disabled(
               selectizeInput(
                 inputId = "register_code",
@@ -448,13 +455,6 @@ ui <- navbarPage(
                 multiple = FALSE,
                 choices = NULL
               )
-            ),
-            selectizeInput(
-              inputId = "type",
-              label = "Exam Type", # nolint
-              multiple = FALSE,
-              choices = c("FIRST ATTEMPT", "RETAKE 1",
-                          "RETAKE 2", "SUPPLEMENTARY")
             ),
             disabled(
               textInput(

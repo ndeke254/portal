@@ -31,7 +31,6 @@ dbname <- Sys.getenv("DB_NAME")
 user <- Sys.getenv("DB_USER")
 password <- Sys.getenv("DB_PASSWORD")
 
-
 #import data
 source("confirm_modal_dialog.R")
 source("edit_modal_dialog.R")
