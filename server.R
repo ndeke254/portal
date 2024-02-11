@@ -1782,6 +1782,21 @@ observeEvent(input$register, {
                            VALUES('",student_reg,"','",student_name,"','",Code,"',
                            '",Course,"','REGISTERED','FIRST ATTEMPT','",student_year,"')")
    DBI::dbExecute(con,insert_query)
+   output$registered_units <- DT::renderDataTable(
+   datatable(student_reg_units, escape = FALSE, selection = "none",
+             options = list(
+               columnDefs = list(
+                list(targets = c(1,2,5,6,7,10,11,12), visible = FALSE)),# column you want to hide
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+              lengthMenu = list(FALSE),  # Hide entries selection
+              language = list(
+               info = ""  # Hide the information about entries
+              )
+             ) 
+   )
+  )
    }else{
     Status = "REGISTERED"
     insert_query <- sprintf("UPDATE registered_units 
@@ -1795,8 +1810,23 @@ observeEvent(input$register, {
      selected = ""
     )
    }
-   register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))   
-   
+   # Reload data from MySQL
+   data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units")) 
+   output$registered_units <- DT::renderDataTable(
+    datatable(data_table, escape = FALSE, selection = "none",
+              options = list(
+               columnDefs = list(
+                list(targets = c(1,2,5,6,7,10,11,12), visible = FALSE)),# column you want to hide
+               searching = FALSE,         # Hide search box
+               paging = FALSE,            # Hide pagination
+               ordering = FALSE,          # Disable ordering in all columns
+               lengthMenu = list(FALSE),  # Hide entries selection
+               language = list(
+                info = ""  # Hide the information about entries
+               )
+              ) 
+    )
+   )
    # update field with unregistered units only
    units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
    student_units <- units |>
@@ -1804,7 +1834,7 @@ observeEvent(input$register, {
     filter(year %in% student_year)
    
    # create a table for a specific student
-   student_reg_units <- register_units$data_table |> 
+   student_reg_units <- data_table |> 
     filter(Serial %in% student_reg) |>
     filter(Year %in% student_year) |>
     arrange(Code)
@@ -1849,12 +1879,16 @@ observeEvent(input$register, {
    timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Date,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
    DBI::dbSendQuery(con,timeline_query)
+    showToast("success", "SUCCESS: REGISTERED",
+             .options = myToastOptions )
   }else{
-   return()
-  }
+   resetLoadingButton("register")
+   showToast("error", "Registration Number required!",
+             .options = myToastOptions )  
+   }
   resetLoadingButton("register")
-  
   })
+
  observeEvent(input$reg, {
   updateTextInput(
    session = session,
@@ -2221,8 +2255,7 @@ observeEvent(input$register, {
  removeModal()
  # create a timeline for the marks changes
  
-  marks_change = paste0(old_mark,"% (",old_grade,") → ", new_score, "% (", new_grade,")")
-  
+ marks_change = paste0(old_mark, "% (", old_grade, ") → ", new_score, "% (", new_grade, ")")
  #update timeline
  Users <- sample(users, 1)
  reg_no <- selected_data$Serial
@@ -2235,7 +2268,8 @@ observeEvent(input$register, {
  #write changes
  timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
- DBI::dbSendQuery(con,timeline_query)
+
+  DBI::dbSendQuery(con,timeline_query)
  
  #reset inputs
  enable("code")
