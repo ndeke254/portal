@@ -27,16 +27,15 @@ moveSentence();'
  observeEvent(input$Code, {
   code <- input$Code
   
-  # define course
+  course_lookup <- c("X74" = "Economics",
+                     "X75" = "Economics and Statistics")
+  
   course <- reactive({
-   if(code == "X74") {
-    course <- "Economics"
-   } else if (code == "X75") {
-    course <- "Economics and Statistics"
-   } else (
-    return()
-   )
+   course_lookup <- as.list(course_lookup)
+   course_name <- course_lookup[[code]]
+   return(course_name)
   })
+
   updateTextInput("Course", session = session,  value = course())
  })
  
@@ -136,7 +135,7 @@ moveSentence();'
    ideal_marks <- '<button id="delete_ 1" type="button" class="btn btn-default action-button" style="color: red;" onclick="Shiny.onInputChange( &quot;delete_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Delete"> <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i></button>
     <button id="edit_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;edit_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Edit"> <i class="fas fa-file-pen" role="presentation" aria-label="file-pen icon"></i></button>
     <button id="approve_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Approve"> <i class="fas fa-circle-check" role="presentation" aria-label="circle-check icon"></i></button>
-    <button id="_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Reject"> <i class="fas fa-circle-xmark" role="presentation" aria-label="circle-xmark icon"></i></button>
+    <button id="reject_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;reject_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Reject"> <i class="fas fa-circle-xmark" role="presentation" aria-label="circle-xmark icon"></i></button>
     <button id="Status" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Status">RELEASED</button>'
    updateTextInput(
     session = session,
@@ -406,14 +405,12 @@ moveSentence();'
   )
   
   # define course
+  course_lookup <- c("X74" = "Economics",
+                     "X75" = "Economics and Statistics")
+  
   course <- reactive({
-   if(code == "X74") {
-    course <- "Economics"
-   } else if (code == "X75") {
-    course <- "Economics and Statistics"
-   } else (
-    return()
-   )
+   course_name <- course_lookup[[code]]
+   return(course_name)
   })
   updateTextInput("edit_course", session = session,  value = course()
   )
@@ -654,35 +651,25 @@ moveSentence();'
                    color = "teal"),
      lapply(seq_len(nrow(current_data)), function(j) {
       
-      # set icons to show in chats
-      action_icon <- current_data$Actions[j]
-      if(action_icon %in% "INSERT NEW"){
-       set_icon <- "address-card"
-      } else if(action_icon %in% "UPDATE USER"){
-       set_icon <- "user-pen"
-      }else if(action_icon %in% "PROMOTE STUDENT"){
-       set_icon <- "turn-up"
-      }else if(action_icon %in% "REGISTER UNIT"){
-       set_icon <- "marker"
-      }else if(action_icon %in% "SUCCESS REGISTRATION"){
-       set_icon <- "thumbs-up"
-      }else if(action_icon %in% "UPDATE MARK"){
-       set_icon <- "user-graduate"
-      }else if(action_icon %in% "PAID FEES"){
-       set_icon <- "money-check-dollar"
-      }else if(action_icon %in% "DELETE MARK"){
-       set_icon <- "ban"
-      }else if(action_icon %in% "EDIT MARK"){
-       set_icon <- "pen-to-square"
-      }else if(action_icon %in% "APPROVE MARK"){
-       set_icon <- "check"
-      }else if(action_icon %in% "PRINT TRANSCRIPT"){
-       set_icon <- "file-pdf"
-      }else if(action_icon %in% "REJECT MARK"){
-       set_icon <- "x"
-      }else{
-       return()
-      }
+     action_icon <- current_data$Actions[j]
+      
+      # Create a lookup table for action icons and corresponding set icons
+      icon_lookup <- c("INSERT NEW" = "address-card",
+                       "UPDATE USER" = "user-pen",
+                       "PROMOTE STUDENT" = "turn-up",
+                       "REGISTER UNIT" = "marker",
+                       "SUCCESS REGISTRATION" = "thumbs-up",
+                       "UPDATE MARK" = "user-graduate",
+                       "PAID FEES" = "money-check-dollar",
+                       "DELETE MARK" = "ban",
+                       "EDIT MARK" = "pen-to-square",
+                       "APPROVE MARK" = "check",
+                       "PRINT TRANSCRIPT" = "file-pdf",
+                       "REJECT MARK" = "x")
+      
+      # Vectorized approach to set icons
+      set_icon <- icon_lookup[[current_data$Actions[j]]]
+      
       timelineItem(
        action_icon,
        title = current_data$Users[j],
@@ -2622,8 +2609,7 @@ moveSentence();'
   selected_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
   selectedRow <- as.numeric(strsplit(input$reject_button, "_")[[1]][2])
   search_string <- paste0("reject_ ",selectedRow)
-  search_string <- paste0("\\b", search_string, "\\b")
-  
+
   row <- selected_data[grepl(search_string, selected_data$Actions), ]
   status <- row$Status
   action <- row$Actions
