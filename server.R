@@ -1,5 +1,5 @@
 server <- function(input, output, session) {
-shinyjs::runjs('
+ shinyjs::runjs('
 var container = $(".moving-sentence");
 container.css("left", "100%");
 function moveSentence() {
@@ -9,7 +9,7 @@ moveSentence();
 });
 }
 moveSentence();'
-)
+ )
  
  # Create a connection to the MySQL database
  con <- dbConnect(
@@ -19,11 +19,11 @@ moveSentence();'
   port = port,
   user = user,
   password = password
-  )
+ )
  
-### ADMINISTRATOR REGISTRATION
-
-# populate required value entries
+ ### ADMINISTRATOR REGISTRATION
+ 
+ # populate required value entries
  observeEvent(input$Code, {
   code <- input$Code
   
@@ -31,23 +31,23 @@ moveSentence();'
   course <- reactive({
    if(code == "X74") {
     course <- "Economics"
-    } else if (code == "X75") {
-     course <- "Economics and Statistics"
-     } else (
-      return()
-      )
-   })
-  updateTextInput("Course", session = session,  value = course())
+   } else if (code == "X75") {
+    course <- "Economics and Statistics"
+   } else (
+    return()
+   )
   })
-
+  updateTextInput("Course", session = session,  value = course())
+ })
+ 
  # Create a vector to store used numbers
  usedNumbers <- function() {
- 
+  
   # Extract numbers between slashes
   numbers <- sub(".*/(\\d+)/.*", "\\1", data$table_data$Reg)
   numbers <- as.numeric(numbers)
   numbers
-  }
+ }
  
  # Create reactive value to store the generated number
  generatedNumber <- reactiveVal(NULL)
@@ -57,25 +57,25 @@ moveSentence();'
              "All Registration Numbers taken!",
              keepVisible = TRUE,
              .options = myToastOptions )
-   } else {
-    code <- isolate(input$Code)
-    date <-Sys.time()
-    year <- format(date, "%Y")
-
-    # Generate a unique 4-digit number
-    num <- sample(setdiff(1000:9999, usedNumbers()), 1)
-    
-    # Update the generatedNumber reactive value
-    generatedNumber(num)
-    reg <- paste0(code, "/", num, "/", year)
-    updateTextInput(session, "Reg", value = reg)
-   }
+  } else {
+   code <- isolate(input$Code)
+   date <-Sys.time()
+   year <- format(date, "%Y")
+   
+   # Generate a unique 4-digit number
+   num <- sample(setdiff(1000:9999, usedNumbers()), 1)
+   
+   # Update the generatedNumber reactive value
+   generatedNumber(num)
+   reg <- paste0(code, "/", num, "/", year)
+   updateTextInput(session, "Reg", value = reg)
   }
-
-  # Load data from MySQL into a reactiveValues object
+ }
+ 
+ # Load data from MySQL into a reactiveValues object
  data <- reactiveValues(table_data = NULL)
  register_units <- reactiveValues(data_table = NULL)
-
+ 
  # Load data from MySQL table into a data.table
  data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
  register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
@@ -94,42 +94,42 @@ moveSentence();'
     <button id="timeline_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;timeline_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Timeline"> <i class="fas fa-clock-rotate-left" role="presentation" aria-label="clock-rotate-left icon"></i></button>
     <button id="cash_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;cash_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Payments"> <i class="fas fa-sack-dollar" role="presentation" aria-label="sack-dollar- icon"></i></button>
     <button id="Edited" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Edited">NO</button>'
-     #update the buttons 
+   #update the buttons 
    updateTextInput(
     session = session,
     inputId = "Buttons",
     value = ideal
    )
    
-     }else{
-      button <- data$table_data |>
-       select(Actions)
-      button  <- button[[1,1]]
-      
-      # Find all IDs containing a number
-      ids <- str_extract_all(button, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
-      
-      # Replace IDs with the next number
-      new_button <- button
-      for (id in ids) {
-       number <- str_extract(id, "\\d+")
-       next_number <- as.numeric(number) + 1
-       new_id <- gsub("\\d+", next_number, id)
-       new_button <- str_replace(new_button, id, new_id)
-       }
-      new <- gsub("color: green;", 
-                  "color: black;" , new_button) 
-      new1 <- gsub("background-color: #0025ff8f;", 
-                   "background-color: #e9ecef;", new)
-      new2 <- gsub("YES", "NO", new1) 
-      
-         #update the buttons
-      updateTextInput(
-       session = session,
-       inputId = "Buttons",
-       value =  new2
-      )
-      }
+  }else{
+   button <- data$table_data |>
+    select(Actions)
+   button  <- button[[1,1]]
+   
+   # Find all IDs containing a number
+   ids <- str_extract_all(button, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
+   
+   # Replace IDs with the next number
+   new_button <- button
+   for (id in ids) {
+    number <- str_extract(id, "\\d+")
+    next_number <- as.numeric(number) + 1
+    new_id <- gsub("\\d+", next_number, id)
+    new_button <- str_replace(new_button, id, new_id)
+   }
+   new <- gsub("color: green;", 
+               "color: black;" , new_button) 
+   new1 <- gsub("background-color: #0025ff8f;", 
+                "background-color: #e9ecef;", new)
+   new2 <- gsub("YES", "NO", new1) 
+   
+   #update the buttons
+   updateTextInput(
+    session = session,
+    inputId = "Buttons",
+    value =  new2
+   )
+  }
   if (nrow(marks_data) == 0 ){
    
    #marks table buttons
@@ -138,45 +138,45 @@ moveSentence();'
     <button id="approve_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;approve_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Approve"> <i class="fas fa-circle-check" role="presentation" aria-label="circle-check icon"></i></button>
     <button id="_ 1" type="button" class="btn btn-default action-button" onclick="Shiny.onInputChange( &quot;_button&quot; , this.id, {priority: &quot;event&quot;})" data-title="Reject"> <i class="fas fa-circle-xmark" role="presentation" aria-label="circle-xmark icon"></i></button>
     <button id="Status" type="button" class="btn btn-default action-button" style="background-color: #e9ecef; " disabled data-title="Status">RELEASED</button>'
-    updateTextInput(
+   updateTextInput(
     session = session,
     inputId = "actions",
     value = ideal_marks
-    )
-   }else{
-    
-    # marks table update
-    button_marks <- register_units$data_table |> 
-     arrange(desc(Date)) |> 
-     select(Actions) 
-    button_marks <- button_marks[[1,1]]
-
-     # Find all IDs containing a number
-    ids_marks <- str_extract_all(button_marks, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
-
-     # Replace IDs with the next number
-    new_button_marks <- button_marks
-    for (id in ids_marks) {
-     number <- str_extract(id, "\\d+")
-     next_number <- as.numeric(number) + 1
-     new_id <- gsub("\\d+", next_number, id)
-     new_button_marks <- str_replace(new_button_marks, id, new_id)
-     }
-    new_marks <- gsub("color: green;", 
-                      "color: black;" , new_button_marks)
-    new1_marks <- gsub("background-color: #0025ff8f;", 
-                       "background-color: #e9ecef;", new_marks)
-    new2_marks <- gsub("PASSED","RELEASED",new1_marks)
-    new3_marks <- gsub("FAILED","RELEASED",new2_marks)
-    new4_marks <- gsub("REJECTED","RELEASED",new3_marks)
-    
-    #update the buttons
-    updateTextInput(
-     session = session,
-     inputId = "actions",
-     value =  new4_marks
-    )
+   )
+  }else{
+   
+   # marks table update
+   button_marks <- register_units$data_table |> 
+    arrange(desc(Date)) |> 
+    select(Actions) 
+   button_marks <- button_marks[[1,1]]
+   
+   # Find all IDs containing a number
+   ids_marks <- str_extract_all(button_marks, "(?<=id=\")\\w+\\s\\d+(?=\")")[[1]]
+   
+   # Replace IDs with the next number
+   new_button_marks <- button_marks
+   for (id in ids_marks) {
+    number <- str_extract(id, "\\d+")
+    next_number <- as.numeric(number) + 1
+    new_id <- gsub("\\d+", next_number, id)
+    new_button_marks <- str_replace(new_button_marks, id, new_id)
    }
+   new_marks <- gsub("color: green;", 
+                     "color: black;" , new_button_marks)
+   new1_marks <- gsub("background-color: #0025ff8f;", 
+                      "background-color: #e9ecef;", new_marks)
+   new2_marks <- gsub("PASSED","RELEASED",new1_marks)
+   new3_marks <- gsub("FAILED","RELEASED",new2_marks)
+   new4_marks <- gsub("REJECTED","RELEASED",new3_marks)
+   
+   #update the buttons
+   updateTextInput(
+    session = session,
+    inputId = "actions",
+    value =  new4_marks
+   )
+  }
   
   # update choices
   updateSelectizeInput(
@@ -196,27 +196,27 @@ moveSentence();'
    selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
-   )
-  })
+  )
+ })
  
  # create a unique registration number
  observeEvent(input$Code, {
   if (!is.null(code) && !is.null(date)) {
    new_reg()
-   } else if (!is.null(code) && !is.null(date)){
-    #image to delete
-    string <- input$Reg
-    #replacing string
-    replacement <- input$Code
-    # Replace characters before the first slash with the new value
-  result <- sub("^[^/]+", replacement, string)
-  #update the regInput 
-  updateTextInput(session = session, inputId = "Reg",
-                  value = result
-                  )
+  } else if (!is.null(code) && !is.null(date)){
+   #image to delete
+   string <- input$Reg
+   #replacing string
+   replacement <- input$Code
+   # Replace characters before the first slash with the new value
+   result <- sub("^[^/]+", replacement, string)
+   #update the regInput 
+   updateTextInput(session = session, inputId = "Reg",
+                   value = result
+   )
   }
-  })
-
+ })
+ 
  # Render the DataTable
  output$registrationTable <- renderDataTable({
   data <- data$table_data |> arrange(desc(Date))
@@ -227,10 +227,10 @@ moveSentence();'
              columnDefs = list(
               list(targets = c(5,6), visible = FALSE),# column you want to hide
               list(targets = c(1, 3, 4, 5, 6, 9), orderable = FALSE)#Disable sorting
-              )
              )
             )
-  })
+  )
+ })
  
  #preview uploaded photo
  observe({
@@ -319,7 +319,7 @@ moveSentence();'
   updateNumericInput(session, "ID", value = "")
   updateSelectInput(session, "Gender", selected = NULL)
   reset("photoInput")
-   
+  
   # Update the preview output
   output$previewImage <- renderImage({
    list(src = "")
@@ -343,13 +343,13 @@ moveSentence();'
    selected = "",
    server = TRUE,
    options = list(maxOptions = 3) 
-   )
-  })
+  )
+ })
  
  # Edit new row
  observeEvent(input$editreg_button, {
- confirm_modal_dialog(approve = FALSE, edit = FALSE, delete = FALSE,
-               editreg = TRUE, promote = FALSE, deletereg = FALSE)
+  confirm_modal_dialog(approve = FALSE, edit = FALSE, delete = FALSE,
+                       editreg = TRUE, promote = FALSE, deletereg = FALSE)
  })
  observeEvent(input$dismiss, {
   removeModal()
@@ -403,21 +403,21 @@ moveSentence();'
   #update the regInput 
   updateTextInput(session = session, inputId = "edit_reg",
                   value = result
-                  )
+  )
   
   # define course
   course <- reactive({
    if(code == "X74") {
     course <- "Economics"
-    } else if (code == "X75") {
-     course <- "Economics and Statistics"
-     } else (
-      return()
-      )
-   })
+   } else if (code == "X75") {
+    course <- "Economics and Statistics"
+   } else (
+    return()
+   )
+  })
   updateTextInput("edit_course", session = session,  value = course()
   )
-  })
+ })
  
  # save edits of a row
  observeEvent(input$save, {
@@ -468,7 +468,7 @@ moveSentence();'
   Course <- selected_data$Course
   
   # create the query
-   update_query <- sprintf("UPDATE student_details SET
+  update_query <- sprintf("UPDATE student_details SET
                            Name = '%s',
                            ID = %s,
                            Gender = '%s',
@@ -477,8 +477,8 @@ moveSentence();'
                            Course = '%s',
                            Actions = '%s'
                            WHERE Serial LIKE '%%%s%%'", 
-                           name, id, gender, reg_no, code, course, buttons,number)
-   
+                          name, id, gender, reg_no, code, course, buttons,number)
+  
   DBI::dbSendQuery(con, update_query)
   
   # Reload data
@@ -499,10 +499,10 @@ moveSentence();'
   )
   
   # Filter out rows where no changes occurred
-   filtered_dataframe <- changes[, !is.na(changes[1, ])]
-   values <- unname(unlist(filtered_dataframe))
-   
- #update timeline
+  filtered_dataframe <- changes[, !is.na(changes[1, ])]
+  values <- unname(unlist(filtered_dataframe))
+  
+  #update timeline
   Users <- "Administrator"
   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
   Actions <- "UPDATE USER"
@@ -537,7 +537,7 @@ moveSentence();'
   # Query to remove a row
   delete_query <- paste0("DELETE FROM student_details WHERE
                            Actions LIKE", search_string 
-                          )
+  )
   timeline_delete_query <- paste0("DELETE FROM student_timeline 
                                    WHERE Serial LIKE", paste0("'%", number, "%'"))
   units_delete_query <- paste0("DELETE FROM registered_units 
@@ -560,113 +560,94 @@ moveSentence();'
  # promote a student to the next year
  observeEvent(input$year_button, {
   confirm_modal_dialog(approve = FALSE, edit = FALSE, delete = FALSE,
-               editreg = FALSE, promote = TRUE, deletereg = FALSE)
+                       editreg = FALSE, promote = TRUE, deletereg = FALSE)
  })
  observeEvent(input$confirm_promote, {
- selectedRow <- as.numeric(strsplit(input$year_button, "_")[[1]][2])
- search_string <- paste0("year_ ",selectedRow)
- 
- # import data
- promote_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
- filtered_df <- promote_data[grepl(search_string, promote_data$Actions), ]
- current_year <- as.numeric(filtered_df$Year)
- 
- # add a plus one
- new_year <- current_year + 1
- 
- # set condition
- units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
- student_units <- units |>
-  filter(course %in% c("BOTH",filtered_df$Code)) |>
-  filter(year %in% current_year)  
- student_reg_units <- register_units$data_table |> 
-  filter(Serial %in% filtered_df$Serial) |>
-  filter(Year %in% filtered_df$Year) |>
-  arrange(Code)
- list1 <- as.list(student_units$code)
- list2 <- as.list(student_reg_units$Code)
- list <- setdiff(list1, list2)
- if(current_year < 4 & all(student_reg_units$Status == "PASSED") & length(list)== 0) {
+  selectedRow <- as.numeric(strsplit(input$year_button, "_")[[1]][2])
+  search_string <- paste0("year_ ",selectedRow)
   
- # update the row
- update_year_query <- sprintf("UPDATE student_details SET Year = %s WHERE Actions LIKE '%%%s%%'", new_year, search_string) 
- DBI::dbExecute(con,update_year_query)
- 
- # Reload data from MySQL after deleting the row
- updated_data <- dbGetQuery(con, "SELECT * FROM student_details")
- 
- # Update the Shiny reactiveValues with the updated data
- data$table_data  <- as.data.table(updated_data)    
- 
- # update timeline after action
- reg_no <- filtered_df$Serial
- Users <- "Prof. Maclain"
- Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
- Actions <- "PROMOTE STUDENT"
- Description <- paste("Promoted ",reg_no, " from Year ", current_year, " to Year ", new_year, sep = "")
- timeline_query <- paste0("INSERT INTO student_timeline
+  # import data
+  promote_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  filtered_df <- promote_data[grepl(search_string, promote_data$Actions), ]
+  current_year <- as.numeric(filtered_df$Year)
+  
+  # add a plus one
+  new_year <- current_year + 1
+  
+  # set condition
+  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+  student_units <- units |>
+   filter(course %in% c("BOTH",filtered_df$Code)) |>
+   filter(year %in% current_year)  
+  student_reg_units <- register_units$data_table |> 
+   filter(Serial %in% filtered_df$Serial) |>
+   filter(Year %in% filtered_df$Year) |>
+   arrange(Code)
+  list1 <- as.list(student_units$code)
+  list2 <- as.list(student_reg_units$Code)
+  list <- setdiff(list1, list2)
+  if(current_year < 4 & all(student_reg_units$Status == "PASSED") & length(list)== 0) {
+   
+   # update the row
+   update_year_query <- sprintf("UPDATE student_details SET Year = %s WHERE Actions LIKE '%%%s%%'", new_year, search_string) 
+   DBI::dbExecute(con,update_year_query)
+   
+   # Reload data from MySQL after deleting the row
+   updated_data <- dbGetQuery(con, "SELECT * FROM student_details")
+   
+   # Update the Shiny reactiveValues with the updated data
+   data$table_data  <- as.data.table(updated_data)    
+   
+   # update timeline after action
+   reg_no <- filtered_df$Serial
+   Users <- "Prof. Maclain"
+   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+   Actions <- "PROMOTE STUDENT"
+   Description <- paste("Promoted ",reg_no, " from Year ", current_year, " to Year ", new_year, sep = "")
+   timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
- DBI::dbSendQuery(con, timeline_query)
- showToast("success",
-           "Student Promoted!",
-           .options = myToastOptions )
- removeModal()
- }else if(current_year == 4 & all(student_reg_units$Status == "PASSED")& length(list)== 0){
-  showToast(
-   "error", "Horray! Waiting Graduation!",
-   .options = myToastOptions
-  )
-  removeModal()
- }else if(current_year < 4 & all(student_reg_units$Status != "PASSED") | length(list)!= 0){
-  showToast("error",
-            "All Year Units NOT passed!",
-            .options = myToastOptions)
-  removeModal()
-  
- }else{
-  removeModal()
-  showToast("error",
-            "Not Qualified!",
-            .options = myToastOptions )
- }
+   DBI::dbSendQuery(con, timeline_query)
+   showToast("success",
+             "Student Promoted!",
+             .options = myToastOptions )
+   removeModal()
+  }else if(current_year == 4 & all(student_reg_units$Status == "PASSED")& length(list)== 0){
+   showToast(
+    "error", "Horray! Waiting Graduation!",
+    .options = myToastOptions
+   )
+   removeModal()
+  }else if(current_year < 4 & all(student_reg_units$Status != "PASSED") | length(list)!= 0){
+   showToast("error",
+             "All Year Units NOT passed!",
+             .options = myToastOptions)
+   removeModal()
+   
+  }else{
+   removeModal()
+   showToast("error",
+             "Not Qualified!",
+             .options = myToastOptions )
+  }
  })
  
- # view a student timeline
- observeEvent(input$timeline_button, {
-  selectedRow <- as.numeric(strsplit(input$timeline_button, "_")[[1]][2])
-  search_string <- paste0("timeline_ ",selectedRow)
-  # import data
-  timeline_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_timeline"))
-  details_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
-  filtered_df <- details_data[grepl(search_string, details_data$Actions), ]
-  
-  # Get the student in review
-  Serial_No <- filtered_df$Serial
-  
-  # Extract numbers between slashes
-  numbers <- sub(".*/(\\d+)/.*", "\\1", Serial_No)
-  numbers <- as.numeric(numbers)
-  Name <- filtered_df$Name
-  student_timeline_data <- timeline_data[grepl(numbers, timeline_data$Serial), ]
-  
-  # Convert Date column to datetime
-  student_timeline_data$Date <- as.POSIXct(student_timeline_data$Date, tz = "UTC")
-  
-  # Separate Date column into Date and Time columns
-  student_timeline_data <- student_timeline_data %>%
-   mutate(DateOnly = as.Date(Date),
-          TimeOnly = format(Date, "%H:%M:%S")) |>
-   arrange(desc(Date))
-  
-  # open the Modal Dialog first
-  user_timeline_modal(reg_no = paste(Serial_No,"",Name))
+ # Keep track of current page
+ currentPage <- reactiveVal(0)
+ 
+ # Function to reset the current page number to 0
+ reset_page <- function() {
+  currentPage(0)
+ }
+ 
+  # all my pages are 10 rows each
+  pageSize <- 10
   
   # Render UI for timeline
-  output$timeline_block <- renderUI({
-   unique_dates <- unique(student_timeline_data$DateOnly)
+  timeline_block <- function(data) {
+   unique_dates <- unique(data$DateOnly)
    lapply(seq_along(unique_dates), function(i) {
     current_date <- unique_dates[i]
-    current_data <- filter(student_timeline_data, DateOnly == current_date)
+    current_data <- filter(data, DateOnly == current_date)
     timelineBlock(
      width = 24,
      timelineLabel(format(current_date, "%Y-%m-%d"),
@@ -712,11 +693,106 @@ moveSentence();'
      })
     )
    })
-  })
+  }
+  
+  
+ # Function to load data from database
+ loadData <- function(numbers, currentPage, pageSize) {
+  offset <- (currentPage - 1) * pageSize
+  
+  # Construct the SQL query with placeholders for Serial, pageSize, and offset
+  query <- sprintf("SELECT * FROM student_timeline 
+                   WHERE Serial LIKE '%%%s%%'
+                   ORDER BY Date DESC
+                   LIMIT %d OFFSET %d", numbers, pageSize, offset)
+  
+  data <- as.data.table(dbGetQuery(con, query))
+  
+  #If no rows are returned, return an empty data frame
+  if (nrow(data) == 0) {
+   return(data.frame())
+  }
+
+   # Convert Date column to datetime
+   data$Date <- as.POSIXct(data$Date, tz = "UTC")
+   # Separate Date column into Date and Time columns
+   data <- data %>%
+    mutate(DateOnly = as.Date(Date),
+           TimeOnly = format(Date, "%H:%M:%S")) 
+   return(data)
+   
+ }
+ 
+ # Function to load next page data
+ load_next_page <- function() {
+   loader$show()
+   on.exit({
+    loader$hide()
+   })
+   Sys.sleep(0.5)
+   
+   # Increment the page number
+   currentPage(currentPage() + 1)
+   # Fetch data for the next page
+   next_page_data <- loadData(numbers, currentPage(), 10)
+   # Check if the returned data frame is empty
+   if (nrow(next_page_data) == 0) {
+    shinyjs::show("empty")
+    output$empty <- renderUI(
+     img(
+      src = "empty.gif",
+      align = "center",
+      height = "100px",
+      width = "500px",
+      style = "margin-top: -260px; margin-left: 170px;"
+     )
+    )
+   } else {
+    shinyjs::hide("empty")
+    # Render the next page data
+    data_ui <- timeline_block(next_page_data)
+    insertUI(selector = "#end", where = "beforeBegin", ui = data_ui)
+   }
+  }
+ 
+ loader <- Waiter$new(id = "end", 
+                      html = spin_3circles(), 
+                      color = "#ffffff1f"
+                      )
+
+ # view a student timeline
+ observeEvent(input$timeline_button, {
+  shinyjs::hide("empty")
+  selectedRow <- as.numeric(strsplit(input$timeline_button, "_")[[1]][2])
+  search_string <- paste0("timeline_ ",selectedRow)
+  
+  # import data
+  details_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  filtered_df <- details_data[grepl(search_string, details_data$Actions), ]
+  
+  # Get the student in review
+  Serial_No <- filtered_df$Serial
+  
+  # Extract numbers between slashes
+  numbers <<- sub(".*/(\\d+)/.*", "\\1", Serial_No)
+  numbers <<- as.numeric(numbers)
+  Name <- filtered_df$Name
+  
+  # open the Modal Dialog first
+  user_timeline_modal(reg_no = paste(Serial_No,"",Name))
  })
+ 
+ # Event handler for when screen end is reached
+ observeEvent(input$screen_end_reached, {
+ # Call load_next_page function
+ load_next_page()
+ })
+ 
  observeEvent(input$ex, {
+  reset_page()
   removeModal()
- })
+  shinyjs::hide("empty")
+  })
  
  ### STUDENT REGISTRATION
  observeEvent(input$student_reg, {
@@ -760,11 +836,11 @@ moveSentence();'
   output$registered_units <- DT::renderDataTable(
    datatable(student_reg_units, escape = FALSE, selection = "none",
              options = list(
-               columnDefs = list(
-                list(targets = c(1,2,5,6,7,10,11,12), visible = FALSE)),# column you want to hide
-               searching = FALSE,         # Hide search box
-               paging = FALSE,            # Hide pagination
-               ordering = FALSE,          # Disable ordering in all columns
+              columnDefs = list(
+               list(targets = c(1,2,5,6,7,10,11,12), visible = FALSE)),# column you want to hide
+              searching = FALSE,         # Hide search box
+              paging = FALSE,            # Hide pagination
+              ordering = FALSE,          # Disable ordering in all columns
               lengthMenu = list(FALSE),  # Hide entries selection
               language = list(
                info = ""  # Hide the information about entries
@@ -808,7 +884,7 @@ moveSentence();'
     inputId = "register_code",
     choices = supp_code$Code,
     server = TRUE
-    )
+   )
    
   }
   updateSelectizeInput(
@@ -1584,9 +1660,9 @@ moveSentence();'
   }
  })
  
-  # create registration deadline
-  observe({
-   
+ # create registration deadline
+ observe({
+  
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
   status <- admin_file[[2,3]]
   get <- admin_file[[2,2]]
@@ -1597,7 +1673,7 @@ moveSentence();'
     value = get
    )
    output$announcement <- renderText({
-   paste0("NOTICE: ", get)
+    paste0("NOTE: ", get)
    })
    disable("post_writeup")
   }else{
@@ -1643,7 +1719,7 @@ moveSentence();'
    
    # show in numericals
    output$remaining_time <- renderText({
-   paste(days,":", hours, ":", minutes, ":", seconds)
+    paste(days,":", hours, ":", minutes, ":", seconds)
    })
   }else{
    output$notice <- renderText({
@@ -1662,101 +1738,100 @@ moveSentence();'
   }
  })
  # close course registration
-  observeEvent(input$close, {
-   enable("select_time")
-   enable("target_date")
-   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
-   
-   # Update the MySQL table
-    query <- sprintf("UPDATE administrator_file SET close = '%s' WHERE id = 1",
-                     "2000-01-01 00:00:00 EAT")
-    dbExecute(con, query)
-    
-    # reload table
-    
-    # Reload data from MySQL after deleting the row
-    updated_data <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
-    updateSwitchInput(session = session,
-                      inputId = "switch",
-                      value = FALSE)
-    
-    # update fields
-    shinyjqui::jqui_hide("#flip", effect = "fade")
-    shinyjqui::jqui_hide("#table", effect = "fade")
-    disable("register_code")
-    output$notice <- renderText({
-     paste("Course Registration has been closed. Kindly contact your Department.")
-    })
-  })
+ observeEvent(input$close, {
+  enable("select_time")
+  enable("target_date")
+  admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
   
-  ####admin control of dates
-  observeEvent(input$open, {
-   disable("select_time")
-   disable("target_date")
-   
-   shinyjqui::jqui_show("#flip", effect = "fade")
-   shinyjqui::jqui_show("#table", effect = "fade")
-   date <- format(input$target_date, "%Y-%m-%d")
-   time <- strftime(input$select_time, "%T")
-   day <- weekdays(input$target_date)
-   date_time <- paste(date,time,"EAT")
-   
-   # save the initial difference recorded for progress check
-   progress_time <- difftime(date_time, Sys.time(), units = "secs")
-   
-   # update switch input
-   updateSwitchInput(session = session,
-                     inputId = "switch",
-                     value = TRUE)
-   
-   # Update the MySQL table
-   query <- sprintf("UPDATE administrator_file SET close = '%s', seconds = '%s'
-                    WHERE id = 1", date_time, progress_time)
-   dbExecute(con, query)
-   
-   # reload table
-   updated_data <- as.data.table(dbGetQuery(con, "SELECT close FROM administrator_file"))
-   output$set_time <- renderDataTable({
-    datatable(updated_data[1,1],
-              escape = FALSE,
-              selection = "none",
-              rownames = FALSE,
-              options = list(
-               columnDefs = list(
-                list(targets = "_all", 
-                     className = "dt-center")
-                ),
-               searching = FALSE,         # Hide search box
-               paging = FALSE,            # Hide pagination
-               ordering = FALSE,          # Disable ordering in all columns
-               lengthMenu = list(FALSE),  # Hide entries selection
-               language = list(
-                info = ""  # Hide the information about entries
-               )
-              )
-    ) |>
-     formatStyle(
-      columns = names(updated_data),  # Apply to all columns
-      textAlign = "center"   # Center alignment
-     )
-   })
+  # Update the MySQL table
+  query <- sprintf("UPDATE administrator_file SET close = '%s' WHERE id = 1",
+                   "2000-01-01 00:00:00 EAT")
+  dbExecute(con, query)
+  
+  # reload table
+  
+  # Reload data from MySQL after deleting the row
+  updated_data <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
+  updateSwitchInput(session = session,
+                    inputId = "switch",
+                    value = FALSE)
+  
+  # update fields
+  shinyjqui::jqui_hide("#flip", effect = "fade")
+  shinyjqui::jqui_hide("#table", effect = "fade")
+  disable("register_code")
+  output$notice <- renderText({
+   paste("Course Registration has been closed. Kindly contact your Department.")
   })
-observeEvent(input$register_code, {
- units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+ })
  
- #update course titles
- t <- input$register_code
- course_df <- units |> filter(code %in% t) %>%  select(title)
- course_title <- course_df[[1]]
- updateTextInput(
-  session = session,
-  inputId = "register_unit",
-  value = course_title
- )
-})
-
-# register a unit
-observeEvent(input$register, {
+ ####admin control of dates
+ observeEvent(input$open, {
+  disable("select_time")
+  disable("target_date")
+  
+  shinyjqui::jqui_show("#flip", effect = "fade")
+  shinyjqui::jqui_show("#table", effect = "fade")
+  date <- format(input$target_date, "%Y-%m-%d")
+  time <- strftime(input$select_time, "%T")
+  day <- weekdays(input$target_date)
+  date_time <- paste(date,time,"EAT")
+  
+  # save the initial difference recorded for progress check
+  progress_time <- difftime(date_time, Sys.time(), units = "secs")
+  
+  # update switch input
+  updateSwitchInput(session = session,
+                    inputId = "switch",
+                    value = TRUE)
+  
+  # Update the MySQL table
+  query <- sprintf("UPDATE administrator_file SET close = '%s', seconds = '%s'
+                    WHERE id = 1", date_time, progress_time)
+  dbExecute(con, query)
+  
+  # reload table
+  updated_data <- as.data.table(dbGetQuery(con, "SELECT close FROM administrator_file"))
+  output$set_time <- renderDataTable({
+   datatable(updated_data[1,1],
+             escape = FALSE,
+             selection = "none",
+             rownames = FALSE,
+             options = list(
+              columnDefs = list(
+               list(targets = "_all", 
+                    className = "dt-center")
+              ),
+              searching = FALSE,         # Hide search box
+              paging = FALSE,            # Hide pagination
+              ordering = FALSE,          # Disable ordering in all columns
+              lengthMenu = list(FALSE),  # Hide entries selection
+              language = list(
+               info = ""  # Hide the information about entries
+              )
+             )
+   ) |>
+    formatStyle(
+     columns = names(updated_data),  # Apply to all columns
+     textAlign = "center"   # Center alignment
+    )
+  })
+ })
+ observeEvent(input$register_code, {
+  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+  #update course titles
+  t <- input$register_code
+  course_df <- units |> filter(code %in% t) %>%  select(title)
+  course_title <- course_df[[1]]
+  updateTextInput(
+   session = session,
+   inputId = "register_unit",
+   value = course_title
+  )
+ })
+ 
+ # register a unit
+ observeEvent(input$register, {
   reg_no <- input$student_reg
   if(input$register_code == ""){
    showToast("info", "Select a Unit!",
@@ -1777,13 +1852,13 @@ observeEvent(input$register, {
    Date <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
    if(input$type != "SUPPLEMENTARY"){
     
-   # Insert data into the database
-   insert_query <- paste0("INSERT INTO registered_units (Serial, Name, Code,
+    # Insert data into the database
+    insert_query <- paste0("INSERT INTO registered_units (Serial, Name, Code,
                            Course, Status, Type,Year)
                            VALUES('",student_reg,"','",student_name,"','",Code,"',
                            '",Course,"','REGISTERED','FIRST ATTEMPT','",student_year,"')")
-   DBI::dbExecute(con,insert_query)
-   
+    DBI::dbExecute(con,insert_query)
+    
    }else{
     Status = "REGISTERED"
     insert_query <- sprintf("UPDATE registered_units 
@@ -1799,7 +1874,7 @@ observeEvent(input$register, {
    }
    # Reload data from MySQL
    data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units")) 
-
+   
    # update field with unregistered units only
    units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
    student_units <- units |>
@@ -1831,14 +1906,14 @@ observeEvent(input$register, {
    list2 <- as.list(student_reg_units$Code)
    list <- setdiff(list1, list2)
    if(length(list)>0) {
-   updateSelectizeInput(
-    session = session,
-    inputId = "register_code",
-    choices = list,
-    selected = "",
-    server = TRUE,
-    options = list(maxOptions = 3)
-   )
+    updateSelectizeInput(
+     session = session,
+     inputId = "register_code",
+     choices = list,
+     selected = "",
+     server = TRUE,
+     options = list(maxOptions = 3)
+    )
    }else{
     updateSelectizeInput(
      session = session,
@@ -1868,16 +1943,16 @@ observeEvent(input$register, {
    timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Date,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
    DBI::dbSendQuery(con,timeline_query)
-    showToast("success", "SUCCESS: REGISTERED",
+   showToast("success", "SUCCESS: REGISTERED",
              .options = myToastOptions )
   }else{
    resetLoadingButton("register")
    showToast("error", "Registration Number required!",
              .options = myToastOptions )  
-   }
+  }
   resetLoadingButton("register")
-  })
-
+ })
+ 
  observeEvent(input$reg, {
   updateTextInput(
    session = session,
@@ -1890,36 +1965,36 @@ observeEvent(input$register, {
    value = ""
   )
   if(input$id == "0"){
-  data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-  
-  # Registered but with no marks units
-  registered_units <- data_table |> 
-   filter(Serial %in% input$reg) |>
-   filter(is.na(Score) | Status == "REGISTERED")
-  
-  # update student name
-  x <- input$reg
-  name_df <- registered_units |> 
-   filter(Serial %in% x) |>
-   select(c("Name","Code"))
-  updateTextInput(
-   session = session,
-   inputId = "name",
-   value = unique(name_df$Name)
-  )
-  # update code input
-  updateSelectizeInput(
-   session = session,
-   inputId = "code",
-   choices = name_df$Code,
-   selected = "",
-   server = TRUE,
-   options = list(maxOptions = 3) 
-  )
+   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   
+   # Registered but with no marks units
+   registered_units <- data_table |> 
+    filter(Serial %in% input$reg) |>
+    filter(is.na(Score) | Status == "REGISTERED")
+   
+   # update student name
+   x <- input$reg
+   name_df <- registered_units |> 
+    filter(Serial %in% x) |>
+    select(c("Name","Code"))
+   updateTextInput(
+    session = session,
+    inputId = "name",
+    value = unique(name_df$Name)
+   )
+   # update code input
+   updateSelectizeInput(
+    session = session,
+    inputId = "code",
+    choices = name_df$Code,
+    selected = "",
+    server = TRUE,
+    options = list(maxOptions = 3) 
+   )
   }
  })
-  observeEvent(input$code, {
-   if(input$id == "0"){
+ observeEvent(input$code, {
+  if(input$id == "0"){
    units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
    
    #update course titles
@@ -1933,100 +2008,100 @@ observeEvent(input$register, {
     inputId = "course",
     value = course_title
    )
-   }
-   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  }
+  data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  
+  # check exam type
+  exam_type <- data_table |> 
+   filter(Serial %in% input$reg) |>
+   filter(Code %in% input$code)|>
+   select(Type)
+  if(exam_type %in% "FIRST ATTEMPT" | input$code == ""){
+   updateTextInput(session, "grade", label = "Grade")
+   updateNumericInput(session, "score", "Score")
+  }else{
+   updateTextInput(session, "grade", label = "Grade *")
+   updateNumericInput(session, "score", "Score *")
+  }
+ })
+ observeEvent(input$score,{
+  data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  
+  # check exam type
+  exam_type <- data_table |> 
+   filter(Serial %in% input$reg) |>
+   filter(Code %in% input$code)|>
+   select(Type)
+  x <- input$score
+  if(exam_type %in% "FIRST ATTEMPT" | input$code == ""){
    
-   # check exam type
-   exam_type <- data_table |> 
-    filter(Serial %in% input$reg) |>
-    filter(Code %in% input$code)|>
-    select(Type)
-   if(exam_type %in% "FIRST ATTEMPT" | input$code == ""){
-    updateTextInput(session, "grade", label = "Grade")
-    updateNumericInput(session, "score", "Score")
-   }else{
-    updateTextInput(session, "grade", label = "Grade *")
-    updateNumericInput(session, "score", "Score *")
+   #set a grade on scale
+   grade <- case_when(
+    x >= 70 ~ "A",
+    x >= 60 ~ "B",
+    x >= 50 ~ "C",
+    x >= 40 ~ " D",
+    x >= 1 ~ "E",
+    TRUE ~ ""
+   )
+   updateTextInput(
+    session = session,
+    inputId = "grade",
+    value = grade
+   )
+   if(x > 99 |is.na(x)| x < 1 | nchar(x) > 2) {
+    updateNumericInput(
+     session = session,
+     inputId = "score",
+     value = ""
+    )
+   }else {
+    return()
    }
-  })
-  observeEvent(input$score,{
-   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-   
-   # check exam type
-   exam_type <- data_table |> 
-    filter(Serial %in% input$reg) |>
-    filter(Code %in% input$code)|>
-    select(Type)
-   x <- input$score
-   if(exam_type %in% "FIRST ATTEMPT" | input$code == ""){
+  }else{
+   if(x > 50 | is.na(x)| x < 40 | nchar(x) > 2) {
+    updateNumericInput(
+     session = session,
+     inputId = "score",
+     value = ""
+    )
     
     #set a grade on scale
-    grade <- case_when(
-     x >= 70 ~ "A",
-     x >= 60 ~ "B",
-     x >= 50 ~ "C",
-     x >= 40 ~ " D",
-     x >= 1 ~ "E",
-     TRUE ~ ""
-    )
+    z <- input$score
     updateTextInput(
      session = session,
      inputId = "grade",
-     value = grade
+     value = "D*"
     )
-    if(x > 99 |is.na(x)| x < 1 | nchar(x) > 2) {
-     updateNumericInput(
-      session = session,
-      inputId = "score",
-      value = ""
-     )
-    }else {
-     return()
-    }
    }else{
-    if(x > 50 | is.na(x)| x < 40 | nchar(x) > 2) {
-     updateNumericInput(
-      session = session,
-      inputId = "score",
-      value = ""
-     )
-     
-     #set a grade on scale
-     z <- input$score
-     updateTextInput(
-      session = session,
-      inputId = "grade",
-      value = "D*"
-     )
-    }else{
-     return()
-    }
+    return()
+   }
   }
-  })
-  # Render the DataTable
+ })
+ # Render the DataTable
+ 
+ output$marks <- renderDataTable({
   
-  output$marks <- renderDataTable({
-   
-   # create a table for a specific student
-   student_marks <- register_units$data_table |> 
-    select(Serial, Name, Code, Course, Score, Grade, Lecturer, Date, Actions)|>
-    filter(!is.na(Score))|>
-    arrange(desc(Date))
-   datatable(student_marks,
-             escape = FALSE,
-             selection = "none",
-             options = list(
-              columnDefs = list(
-               list(targets = c(2,4,5,6,7,9), orderable = FALSE)#Disable sorting
-              )
+  # create a table for a specific student
+  student_marks <- register_units$data_table |> 
+   select(Serial, Name, Code, Course, Score, Grade, Lecturer, Date, Actions)|>
+   filter(!is.na(Score))|>
+   arrange(desc(Date))
+  datatable(student_marks,
+            escape = FALSE,
+            selection = "none",
+            options = list(
+             columnDefs = list(
+              list(targets = c(2,4,5,6,7,9), orderable = FALSE)#Disable sorting
              )
-   )
-  })
-  
-  # When the Submit button is clicked
-  observeEvent(input$submit, {
-   if(input$id == "0"){
-    
+            )
+  )
+ })
+ 
+ # When the Submit button is clicked
+ observeEvent(input$submit, {
+  if(input$id == "0"){
+   
    #put control to remove NA values
    if (input$reg == "" | input$code == "" | is.na(input$score)
        | input$grade == "") {
@@ -2082,44 +2157,44 @@ observeEvent(input$register, {
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
     DBI::dbSendQuery(con,timeline_query)
    }
-   }
-  })
+  }
+ })
+ 
+ observeEvent(input$cash_button, {
+  selectedRow <- as.numeric(strsplit(input$cash_button, "_")[[1]][2])
+  search_string <- paste0("cash_ ",selectedRow)
   
-  observeEvent(input$cash_button, {
-   selectedRow <- as.numeric(strsplit(input$cash_button, "_")[[1]][2])
-   search_string <- paste0("cash_ ",selectedRow)
-   
-   # Load data from MySQL table into a data.table
-   details_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
-                                 
-   # Get the serial number
-   row <- details_data[grepl(search_string, details_data$Actions), ]
-   
-   
-   # update timeline on mark submission
-   reg_no <- row$Serial
-   Users <- row$Name
-   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
-   Actions <- "PAID FEES"
-   Amount <- sample(seq(1000, 10000, by = 5)*2, 1)
-   Description <- paste("Paid $", Amount, " Tuition fee for SEM 1 2024", sep = "")
-   timeline_query <- paste0("INSERT INTO student_timeline
+  # Load data from MySQL table into a data.table
+  details_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  
+  # Get the serial number
+  row <- details_data[grepl(search_string, details_data$Actions), ]
+  
+  
+  # update timeline on mark submission
+  reg_no <- row$Serial
+  Users <- row$Name
+  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+  Actions <- "PAID FEES"
+  Amount <- sample(seq(1000, 10000, by = 5)*2, 1)
+  Description <- paste("Paid $", Amount, " Tuition fee for SEM 1 2024", sep = "")
+  timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
-   DBI::dbSendQuery(con,timeline_query)
-   showToast(
-    "success", "Payment Accepted", .options = myToastOptions
-   )
-  })
-  
-  # customize mark buttons functionality
-  
-  #Delete Button
-  observeEvent(input$delete_button, {
-   confirm_modal_dialog(approve = FALSE, edit = FALSE, delete = TRUE,
-                        editreg = FALSE, promote = FALSE, deletereg = FALSE)
-  })
-  
-  #edit a student registration file
+  DBI::dbSendQuery(con,timeline_query)
+  showToast(
+   "success", "Payment Accepted", .options = myToastOptions
+  )
+ })
+ 
+ # customize mark buttons functionality
+ 
+ #Delete Button
+ observeEvent(input$delete_button, {
+  confirm_modal_dialog(approve = FALSE, edit = FALSE, delete = TRUE,
+                       editreg = FALSE, promote = FALSE, deletereg = FALSE)
+ })
+ 
+ #edit a student registration file
  observeEvent(input$confirm_editreg,{
   
   # Load data from MySQL table into a data.table
@@ -2153,10 +2228,9 @@ observeEvent(input$register, {
  observeEvent(input$confirm_delete, {
   selectedRow <- as.numeric(strsplit(input$delete_button, "_")[[1]][2])
   search_string_1 <- paste0("delete_ ",selectedRow)
-  search_string_1 <- paste0("\\b", search_string_1, "\\b")
-  
-  search_string <- paste0("'%", search_string, "%'")
-  
+
+  search_string <- paste0("'%", search_string_1, "%'")
+
   # Load data from MySQL table into a data.table
   marks_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
   
@@ -2164,35 +2238,35 @@ observeEvent(input$register, {
   row <- marks_data[grepl(search_string_1, marks_data$Actions), ]
   status <- row$Status
   if(status %in% "RELEASED"){
-  # update timeline on deletion
-  reg_no <- row$Serial
-  Code <- row$Code
-  Course <- row$Course
-  Users <- sample(users, 1)
-  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
-  Actions <- "DELETE MARK"
-  Description <- paste("Deleted marks for ", Code, " : ", Course, sep = "")
-  timeline_query <- paste0("INSERT INTO student_timeline
+   # update timeline on deletion
+   reg_no <- row$Serial
+   Code <- row$Code
+   Course <- row$Course
+   Users <- sample(users, 1)
+   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+   Actions <- "DELETE MARK"
+   Description <- paste("Deleted marks for ", Code, " : ", Course, sep = "")
+   timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
-  DBI::dbSendQuery(con,timeline_query)
-  
-  # Query to remove a row
-  marks_delete_query <- paste0("DELETE FROM registered_units WHERE
+   DBI::dbSendQuery(con,timeline_query)
+   
+   # Query to remove a row
+   marks_delete_query <- paste0("DELETE FROM registered_units WHERE
                            Actions LIKE", search_string 
-                               )
- 
-  DBI::dbSendQuery(con, marks_delete_query)
-  
-  # Reload data from MySQL after deleting the row
-  updated_data <- dbGetQuery(con, "SELECT * FROM registered_units")
-  
-  # Update the Shiny reactiveValues with the updated data
-  register_units$data_table <- as.data.table(updated_data)
-  showToast("success",
-            "Mark Deleted!",
-            .options = myToastOptions )
-  removeModal()
-  
+   )
+
+   DBI::dbSendQuery(con, marks_delete_query)
+   
+   # Reload data from MySQL after deleting the row
+   updated_data <- dbGetQuery(con, "SELECT * FROM registered_units")
+   
+   # Update the Shiny reactiveValues with the updated data
+   register_units$data_table <- as.data.table(updated_data)
+   showToast("success",
+             "Mark Deleted!",
+             .options = myToastOptions )
+   removeModal()
+   
   }else {
    showToast("error",
              "Not Allowed: Approved!",
@@ -2201,7 +2275,7 @@ observeEvent(input$register, {
   }
  })
  
-# edit Button on marks
+ # edit Button on marks
  observeEvent(input$edit_button, {
   confirm_modal_dialog(approve = FALSE, edit = TRUE, delete = FALSE,
                        editreg = FALSE, promote = FALSE, deletereg = FALSE)
@@ -2215,25 +2289,25 @@ observeEvent(input$register, {
   selectedRow <- as.numeric(strsplit(input$edit_button, "_")[[1]][2])
   search_string <- paste0("edit_ ",selectedRow)
   search_string <- paste0("\\b", search_string, "\\b")
-
+  
   row <- data[grepl(search_string, data$Actions), ]
   status <- row$Status
   
   if(status %in% "RELEASED") {
-  updateTextInput(session, "id", value = "1")
-  updateSelectInput(session, "code", choices = units_table$code,
-                    selected = row$Code)
-  updateSelectInput(session, "reg", selected = row$Serial)
-  updateTextInput(session, "name", value = row$Name)
-  updateNumericInput(session, "course", value = row$Course)
-  updateTextInput(session, "score", value = row$Score)
-  updateTextInput(session, "grade", value = row$Grade)
-  updateTextInput(session, "actions", value = row$Actions)
-  disable("code")
-  disable("reg")
-  showNotification("Edit the score only!", duration = 10, type = "message")
-  removeModal()
-  
+   updateTextInput(session, "id", value = "1")
+   updateSelectInput(session, "code", choices = units_table$code,
+                     selected = row$Code)
+   updateSelectInput(session, "reg", selected = row$Serial)
+   updateTextInput(session, "name", value = row$Name)
+   updateNumericInput(session, "course", value = row$Course)
+   updateTextInput(session, "score", value = row$Score)
+   updateTextInput(session, "grade", value = row$Grade)
+   updateTextInput(session, "actions", value = row$Actions)
+   disable("code")
+   disable("reg")
+   showNotification("Edit the score only!", duration = 10, type = "message")
+   removeModal()
+   
   }else{
    showToast("error",
              "Not Allowed: Approved!",
@@ -2245,58 +2319,58 @@ observeEvent(input$register, {
  observeEvent(input$submit, {
   if(input$id == "1"){
    
- # collect all entries
-  new_score <- input$score
-  new_grade <- input$grade
-  action <- input$actions
-  
- # Load data from MySQL table into a data.table
- selected_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
- selected_data <- selected_data |>
-  filter(Actions %in% action)
- old_mark <- selected_data$Score
- old_grade <- selected_data$Grade
- 
- # create the query
- update_query <- sprintf("UPDATE registered_units SET
+   # collect all entries
+   new_score <- input$score
+   new_grade <- input$grade
+   action <- input$actions
+   
+   # Load data from MySQL table into a data.table
+   selected_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   selected_data <- selected_data |>
+    filter(Actions %in% action)
+   old_mark <- selected_data$Score
+   old_grade <- selected_data$Grade
+   
+   # create the query
+   update_query <- sprintf("UPDATE registered_units SET
                            Score = %s,
                            Grade = '%s' 
                            WHERE Actions = '%s'", 
                            new_score, new_grade, action)
- DBI::dbSendQuery(con,update_query)
- # Reload data
- register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
- resetLoadingButton("submit")
- showToast("success",
-           "Student Marks Edited!",
-           .options = myToastOptions )
- removeModal()
- # create a timeline for the marks changes
- 
- marks_change = paste0(old_mark, "% (", old_grade, ") → ", new_score, "% (", new_grade, ")")
- #update timeline
- Users <- sample(users, 1)
- reg_no <- selected_data$Serial
- Code <- selected_data$Code
- Course <- selected_data$Course
- Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
- Actions <- "EDIT MARK"
- Description <- paste("Edited Marks ",Code," : ", Course,"i.e.",marks_change )
- 
- #write changes
- timeline_query <- paste0("INSERT INTO student_timeline
+   DBI::dbSendQuery(con,update_query)
+   # Reload data
+   register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   resetLoadingButton("submit")
+   showToast("success",
+             "Student Marks Edited!",
+             .options = myToastOptions )
+   removeModal()
+   # create a timeline for the marks changes
+   
+   marks_change = paste0(old_mark, "% (", old_grade, ") → ", new_score, "% (", new_grade, ")")
+   #update timeline
+   Users <- sample(users, 1)
+   reg_no <- selected_data$Serial
+   Code <- selected_data$Code
+   Course <- selected_data$Course
+   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+   Actions <- "EDIT MARK"
+   Description <- paste("Edited Marks ",Code," : ", Course,"i.e.",marks_change )
+   
+   #write changes
+   timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
-
-  DBI::dbSendQuery(con,timeline_query)
- 
- #reset inputs
- enable("code")
- enable("reg")
- updateTextInput(session, "id", value = "0")
- updateTextInput(session, "score", value = "")
- updateSelectizeInput(session, "code", choices = "", selected ="")
+   
+   DBI::dbSendQuery(con,timeline_query)
+   
+   #reset inputs
+   enable("code")
+   enable("reg")
+   updateTextInput(session, "id", value = "0")
+   updateTextInput(session, "score", value = "")
+   updateSelectizeInput(session, "code", choices = "", selected ="")
   }
-})
+ })
  
  # admin approve marks for the student 
  observeEvent(input$approve_button, {
@@ -2311,48 +2385,48 @@ observeEvent(input$register, {
   score <- row$Score
   status <- row$Status
   if(status %in% "RELEASED") {
-  if(score > 40){
-   Status <- "PASSED"
-  }else if(score < 40){
-   Status <- "FAILED"
-  }else{
-   return()
-  }
-  
-  # change color for edited rows
-  button <- action
-  new_button <- gsub("background-color: #e9ecef;", 
-                     "background-color: #0025ff8f;", button)
-  edited_buttons_1 <- gsub("RELEASED",Status, new_button)
-  edited_buttons <- gsub("FAILED",Status, edited_buttons_1)
-  
-  # create the query
-  update_query <- sprintf("UPDATE registered_units SET
+   if(score > 40){
+    Status <- "PASSED"
+   }else if(score < 40){
+    Status <- "FAILED"
+   }else{
+    return()
+   }
+   
+   # change color for edited rows
+   button <- action
+   new_button <- gsub("background-color: #e9ecef;", 
+                      "background-color: #0025ff8f;", button)
+   edited_buttons_1 <- gsub("RELEASED",Status, new_button)
+   edited_buttons <- gsub("FAILED",Status, edited_buttons_1)
+   
+   # create the query
+   update_query <- sprintf("UPDATE registered_units SET
                            Status = '%s',
                            Actions = '%s' 
                            WHERE Actions = '%s'", 
-                          Status, edited_buttons, action)
-  DBI::dbSendQuery(con,update_query)
-  
-  # Reload data
-  register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-  showToast("success",
-            "Student Marks Approved!",
-            .options = myToastOptions )
-  
-  #update timeline
-  Users <- "Administrator"
-  reg_no <- row$Serial
-  Code <- row$Code
-  Course <- row$Course
-  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
-  Actions <- "APPROVE MARK"
-  Description <- paste("Approved Marks ",Code," : ", Course)
-  # write changes
-  timeline_query <- paste0("INSERT INTO student_timeline
+                           Status, edited_buttons, action)
+   DBI::dbSendQuery(con,update_query)
+   
+   # Reload data
+   register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+   showToast("success",
+             "Student Marks Approved!",
+             .options = myToastOptions )
+   
+   #update timeline
+   Users <- "Administrator"
+   reg_no <- row$Serial
+   Code <- row$Code
+   Course <- row$Course
+   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+   Actions <- "APPROVE MARK"
+   Description <- paste("Approved Marks ",Code," : ", Course)
+   # write changes
+   timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
-  DBI::dbSendQuery(con,timeline_query)
-  
+   DBI::dbSendQuery(con,timeline_query)
+   
   }else{
    showToast("error",
              "Not Allowed: Approved!",
@@ -2362,157 +2436,157 @@ observeEvent(input$register, {
  
  observe({
   
- # output value boxes
- current_year <- lubridate::year(Sys.Date())
- current_date <- format(Sys.Date(), "%d-%m-%Y")
- previous_year <- current_year - 1
- previous_day1 <- Sys.Date() - 1
- previous_day <- format(previous_day1, "%d-%m-%Y")
- 
- # year
- n_c <- data$table_data[grepl(current_year, data$table_data$Date), ] |>
-  nrow()
- n_p <- data$table_data[grepl(previous_year, data$table_data$Date), ] |>
-  nrow()
- per_n <- (((n_c-n_p)/n_p)*100) |> round(2)
- 
- # day
- c_d <- register_units$data_table[grepl(current_date, register_units$data_table$Date), ] |>
-  nrow()
- p_d <- register_units$data_table [grepl(previous_day, register_units$data_table$Date), ] |>
-  nrow()
- per_d <- (((c_d-p_d)/p_d)*100) |> round(2)
- 
- ####
- output$registered_no <- renderValueBox({
-  value <- n_c |>
-   prettyNum(big.mark =',', scientific = FALSE)
-  color <- my_color(per_n)
-  arrow <- my_symbol(per_n)
-  my_valuebox(value,  
-              title = "NO.OF STUDENTS",
-              subtitle = tagList(HTML(arrow), paste0(abs(per_n),"% since last year")),
-              icon = icon("pencil"),
-              color = color
-  )
- })
- 
- ###
- output$available_marks <- renderValueBox({
-  value <- c_d |>
-   prettyNum(big.mark =',', scientific = FALSE)
-  color <- my_color(per_d)
-  arrow <- my_symbol(per_d)
-  my_valuebox(value,  
-              title = "RELEASED RESULTS",
-              subtitle = tagList(HTML(arrow), paste0(abs(per_d),"% since yesterday")),
-              icon = icon("pencil"),
-              color = color
-  )
- })
- miss_today <- register_units$data_table [grepl("REGISTERED", register_units$data_table$Status), ] |>
-  filter(Date %in% current_date) |> nrow()
- miss_yester <- register_units$data_table[grepl("REGISTERED", register_units$data_table $Status), ] |>
-  filter(Date %in% previous_day) |> nrow()
- miss_per <- (((miss_today-miss_yester)/miss_yester)*100) |> round(2)
- output$missing_marks <- renderValueBox({
-  value = miss_today |>
-   prettyNum(big.mark =',', scientific = FALSE)
-  color <- my_color(miss_per)
-  arrow <- my_symbol(miss_per)
-  my_valuebox(value,  
-              title = "MISSING MARKS",
-              subtitle = tagList(HTML(arrow), paste0(abs(miss_per),"% since yesterday")),
-              icon = icon("pencil"),
-              color = color
-  )
- })
- 
- ####
- fail_today <- register_units$data_table [grepl("FAILED", register_units$data_table $Status), ] |>
-  filter(Date %in% current_date) |> nrow()
- fail_yester <- register_units$data_table [grepl("FAILED", register_units$data_table $Status), ] |>
-  filter(Date %in% previous_day) |> nrow()
- fail_per <- (((fail_today-fail_yester)/fail_yester)*100) |> round(2)
- output$failed_marks <- renderValueBox({
-  value = fail_today |>
-   prettyNum(big.mark =',', scientific = FALSE)
-  color <- my_color(fail_per)
-  arrow <- my_symbol(fail_per)
-  my_valuebox(value,  
-              title = "FAILED MARKS",
-              subtitle = tagList(HTML(arrow), paste0(abs(fail_per),"% since yesterday")),
-              icon = icon("pencil"),
-              color = color
-  )
- })
- 
- ####
- prom_ready <- data$table_data |> 
-  filter(Year %in% c(1,2,3))
- prom_current <-   prom_ready [grepl(current_date,   prom_ready $Date), ] |> nrow()
- prom_previous <-   prom_ready [grepl(previous_day,   prom_ready $Date), ] |> nrow()
- prom_per <- (((prom_current-prom_previous)/prom_previous)*100) |> round(2)
- output$waiting_promotion <- renderValueBox({
-  value = prom_current |>
-   prettyNum(big.mark =',', scientific = FALSE)
-  color <- my_color(prom_per)
-  arrow <- my_symbol(prom_per)
-  my_valuebox(value,  
-              title = "PENDING PROMOTIONS",
-              subtitle = tagList(HTML(arrow), paste0(abs(prom_per),"% since yesterday")),
-              icon = icon("pencil"),
-              color = color
-  )
- })
- 
- ####
- ready_grad <- data$table_data |> 
-  filter(Year %in% 4)
- grad_current1 <- ready_grad |> 
-  filter(Year %in% 4) 
- grad_current <- grad_current1[grepl(current_year, grad_current1$Date), ] |> nrow()
- grad_previous <- grad_current1[grepl(previous_year, grad_current1$Date), ] |> nrow()
- grad_per <- (((grad_current-grad_previous)/grad_previous)*100) |> round(2)
- output$grad_students <- renderValueBox({
-  value = grad_current |>
-   prettyNum(big.mark =',', scientific = FALSE)
-  color <- my_color(grad_per)
-  arrow <- my_symbol(grad_per)
-  my_valuebox(value,  
-              title = "WAITING GRADUATION",
-              subtitle = tagList(HTML(arrow), paste0(abs(grad_per),"% since last year")),
-              icon = icon("pencil"),
-              color = color
-  )
- })
- admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
- output$set_time <- renderDataTable({
-  datatable(admin_file[1,2],
-            escape = FALSE,
-            selection = "none",
-            rownames = FALSE,
-            options = list(
-             columnDefs = list(
-              list(targets = "_all", 
-                   className = "dt-center")
-             ),
-             searching = FALSE,         # Hide search box
-             paging = FALSE,            # Hide pagination
-             ordering = FALSE,          # Disable ordering in all columns
-             lengthMenu = list(FALSE),  # Hide entries selection
-             language = list(
-              info = ""  # Hide the information about entries
-             )
-            )
-  ) |>
-   formatStyle(
-    columns = "close",  # Apply to all columns
-    textAlign = "center"   # Center alignment
+  # output value boxes
+  current_year <- lubridate::year(Sys.Date())
+  current_date <- format(Sys.Date(), "%d-%m-%Y")
+  previous_year <- current_year - 1
+  previous_day1 <- Sys.Date() - 1
+  previous_day <- format(previous_day1, "%d-%m-%Y")
+  
+  # year
+  n_c <- data$table_data[grepl(current_year, data$table_data$Date), ] |>
+   nrow()
+  n_p <- data$table_data[grepl(previous_year, data$table_data$Date), ] |>
+   nrow()
+  per_n <- (((n_c-n_p)/n_p)*100) |> round(2)
+  
+  # day
+  c_d <- register_units$data_table[grepl(current_date, register_units$data_table$Date), ] |>
+   nrow()
+  p_d <- register_units$data_table [grepl(previous_day, register_units$data_table$Date), ] |>
+   nrow()
+  per_d <- (((c_d-p_d)/p_d)*100) |> round(2)
+  
+  ####
+  output$registered_no <- renderValueBox({
+   value <- n_c |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(per_n)
+   arrow <- my_symbol(per_n)
+   my_valuebox(value,  
+               title = "NO.OF STUDENTS",
+               subtitle = tagList(HTML(arrow), paste0(abs(per_n),"% since last year")),
+               icon = icon("pencil"),
+               color = color
    )
- })
- disable("target_date")
- disable("select_time")
+  })
+  
+  ###
+  output$available_marks <- renderValueBox({
+   value <- c_d |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(per_d)
+   arrow <- my_symbol(per_d)
+   my_valuebox(value,  
+               title = "RELEASED RESULTS",
+               subtitle = tagList(HTML(arrow), paste0(abs(per_d),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
+  miss_today <- register_units$data_table [grepl("REGISTERED", register_units$data_table$Status), ] |>
+   filter(Date %in% current_date) |> nrow()
+  miss_yester <- register_units$data_table[grepl("REGISTERED", register_units$data_table $Status), ] |>
+   filter(Date %in% previous_day) |> nrow()
+  miss_per <- (((miss_today-miss_yester)/miss_yester)*100) |> round(2)
+  output$missing_marks <- renderValueBox({
+   value = miss_today |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(miss_per)
+   arrow <- my_symbol(miss_per)
+   my_valuebox(value,  
+               title = "MISSING MARKS",
+               subtitle = tagList(HTML(arrow), paste0(abs(miss_per),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
+  
+  ####
+  fail_today <- register_units$data_table [grepl("FAILED", register_units$data_table $Status), ] |>
+   filter(Date %in% current_date) |> nrow()
+  fail_yester <- register_units$data_table [grepl("FAILED", register_units$data_table $Status), ] |>
+   filter(Date %in% previous_day) |> nrow()
+  fail_per <- (((fail_today-fail_yester)/fail_yester)*100) |> round(2)
+  output$failed_marks <- renderValueBox({
+   value = fail_today |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(fail_per)
+   arrow <- my_symbol(fail_per)
+   my_valuebox(value,  
+               title = "FAILED MARKS",
+               subtitle = tagList(HTML(arrow), paste0(abs(fail_per),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
+  
+  ####
+  prom_ready <- data$table_data |> 
+   filter(Year %in% c(1,2,3))
+  prom_current <-   prom_ready [grepl(current_date,   prom_ready $Date), ] |> nrow()
+  prom_previous <-   prom_ready [grepl(previous_day,   prom_ready $Date), ] |> nrow()
+  prom_per <- (((prom_current-prom_previous)/prom_previous)*100) |> round(2)
+  output$waiting_promotion <- renderValueBox({
+   value = prom_current |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(prom_per)
+   arrow <- my_symbol(prom_per)
+   my_valuebox(value,  
+               title = "PENDING PROMOTIONS",
+               subtitle = tagList(HTML(arrow), paste0(abs(prom_per),"% since yesterday")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
+  
+  ####
+  ready_grad <- data$table_data |> 
+   filter(Year %in% 4)
+  grad_current1 <- ready_grad |> 
+   filter(Year %in% 4) 
+  grad_current <- grad_current1[grepl(current_year, grad_current1$Date), ] |> nrow()
+  grad_previous <- grad_current1[grepl(previous_year, grad_current1$Date), ] |> nrow()
+  grad_per <- (((grad_current-grad_previous)/grad_previous)*100) |> round(2)
+  output$grad_students <- renderValueBox({
+   value = grad_current |>
+    prettyNum(big.mark =',', scientific = FALSE)
+   color <- my_color(grad_per)
+   arrow <- my_symbol(grad_per)
+   my_valuebox(value,  
+               title = "WAITING GRADUATION",
+               subtitle = tagList(HTML(arrow), paste0(abs(grad_per),"% since last year")),
+               icon = icon("pencil"),
+               color = color
+   )
+  })
+  admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
+  output$set_time <- renderDataTable({
+   datatable(admin_file[1,2],
+             escape = FALSE,
+             selection = "none",
+             rownames = FALSE,
+             options = list(
+              columnDefs = list(
+               list(targets = "_all", 
+                    className = "dt-center")
+              ),
+              searching = FALSE,         # Hide search box
+              paging = FALSE,            # Hide pagination
+              ordering = FALSE,          # Disable ordering in all columns
+              lengthMenu = list(FALSE),  # Hide entries selection
+              language = list(
+               info = ""  # Hide the information about entries
+              )
+             )
+   ) |>
+    formatStyle(
+     columns = "close",  # Apply to all columns
+     textAlign = "center"   # Center alignment
+    )
+  })
+  disable("target_date")
+  disable("select_time")
  })
  observeEvent(input$post, {
   disable("post_writeup")
@@ -2535,7 +2609,7 @@ observeEvent(input$register, {
    session = session,
    inputId = "post_writeup",
    value = ""
-   )
+  )
   
   # Update the MySQL table
   query <- sprintf("UPDATE administrator_file SET close = '%s', seconds = '%s'
@@ -2562,7 +2636,7 @@ observeEvent(input$register, {
    new_button <- gsub("background-color: #e9ecef;", 
                       "background-color: #0025ff8f;", button)
    edited_buttons <- gsub("RELEASED","REJECTED", new_button)
-
+   
    # create the query
    update_query <- sprintf("UPDATE registered_units SET
                            Status = '%s',
@@ -2601,5 +2675,5 @@ observeEvent(input$register, {
  })
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends
-   })
+ })
 }
