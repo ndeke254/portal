@@ -45,6 +45,13 @@ ui <- navbarPage(
                    label = "",
                    icon = icon("phone"),
                    onclick = "window.open('070-------')")
+      ),
+      br(),
+      br(),
+      br(),
+      tags$div(
+       style = "font-size: 10px;",
+      "© 2024 Jefferson. All rights reserved."
       )
     ),
     class = "announcement_container",
