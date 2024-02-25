@@ -82,7 +82,6 @@ moveSentence();'
  # Load data from MySQL table into a data.table
  observe({
   
-  data_table_1 <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   marks_data <- register_units$data_table |> filter(!is.na(Score))
   
   #create an ideal button
@@ -181,7 +180,7 @@ moveSentence();'
   updateSelectizeInput(
    session = session,
    inputId = "student_reg",
-   choices = data_table_1$Serial,
+   choices = data$table_data$Serial,
    selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
@@ -682,6 +681,15 @@ moveSentence();'
    })
   }
   
+  # loading spinner
+  loader <- Waiter$new(id = "end", 
+                       html = spin_loaders(
+                        id = 3, 
+                        color = "#696f72",
+                        style = NULL
+                        ),
+                       color = "#ffffff1f"
+                       )
   
  # Function to load data from database
  loadData <- function(numbers, currentPage, pageSize) {
@@ -712,12 +720,6 @@ moveSentence();'
  
  # Function to load next page data
  load_next_page <- function() {
-   loader$show()
-   on.exit({
-    loader$hide()
-   })
-   Sys.sleep(0.5)
-   
    # Increment the page number
    currentPage(currentPage() + 1)
    # Fetch data for the next page
@@ -736,17 +738,18 @@ moveSentence();'
     )
    } else {
     shinyjs::hide("empty")
+    loader$show()
+    on.exit({
+     loader$hide()
+    })
+    Sys.sleep(0.5)
+    
     # Render the next page data
     data_ui <- timeline_block(next_page_data)
     insertUI(selector = "#end", where = "beforeBegin", ui = data_ui)
    }
   }
  
- loader <- Waiter$new(id = "end", 
-                      html = spin_3circles(), 
-                      color = "#ffffff1f"
-                      )
-
  # view a student timeline
  observeEvent(input$timeline_button, {
   shinyjs::hide("empty")
@@ -1649,7 +1652,6 @@ moveSentence();'
  
  # create registration deadline
  observe({
-  
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
   status <- admin_file[[2,3]]
   get <- admin_file[[2,2]]
