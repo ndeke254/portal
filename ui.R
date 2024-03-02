@@ -164,10 +164,11 @@ ui <- navbarPage(
             cellWidths = c("15.111%", "7.111%", "11.111%", "5.111%", "11.111%",
                            "20.111%", "11.111%", "1.111%"),
             cellArgs = list(style = "padding: 3px"),
-            textInput("Name",
-              inputId = "Name",
-              placeholder = "Enter Student name"
-            ),
+            textInput(
+             label = "Name",
+             inputId = "Name",
+             placeholder = "Enter Student name"
+             ),
             selectInput(
               inputId = "Gender",
               label = "Gender",

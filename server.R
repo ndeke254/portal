@@ -10,6 +10,8 @@ moveSentence();
 }
 moveSentence();'
  )
+
+ #import data
  
  # Create a connection to the MySQL database
  con <- dbConnect(
@@ -21,10 +23,20 @@ moveSentence();'
   password = password
  )
  
- ### ADMINISTRATOR REGISTRATION
+ # Load data from MySQL into a reactiveValues object
+ data <- reactiveValues(table_data = NULL)
+ register_units <- reactiveValues(data_table = NULL)
+ 
+ # Load data from MySQL table into a data.table
+ data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+ register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+ units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units")) 
+
+  ### ADMINISTRATOR REGISTRATION
  
  # populate required value entries
  observeEvent(input$Code, {
+  data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   code <- input$Code
   
   course_lookup <- c("X74" = "Economics",
@@ -71,17 +83,8 @@ moveSentence();'
   }
  }
  
- # Load data from MySQL into a reactiveValues object
- data <- reactiveValues(table_data = NULL)
- register_units <- reactiveValues(data_table = NULL)
- 
- # Load data from MySQL table into a data.table
- data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
- register_units$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
- 
  # Load data from MySQL table into a data.table
  observe({
-  
   marks_data <- register_units$data_table[!is.na(Score), ]
   #create an ideal button
   if(nrow(data$table_data) == 0){
@@ -171,16 +174,7 @@ moveSentence();'
     value =  new4_marks
    )
   }
-  # update choices
-  updateSelectizeInput(
-   session = session,
-   inputId = "student_reg",
-   choices = data$table_data[, Serial],
-   selected = "",
-   server = TRUE,
-   options = list(maxOptions = 3)
-  )
-  
+
   # update choices
   updateSelectizeInput(
    session = session,
@@ -190,6 +184,16 @@ moveSentence();'
    server = TRUE,
    options = list(maxOptions = 3)
   )
+    # update choices
+  updateSelectizeInput(
+   session = session,
+   inputId = "student_reg",
+   choices = data$table_data[, Serial],
+   selected = "",
+   server = TRUE,
+   options = list(maxOptions = 3)
+  )
+   
  })
  
  # create a unique registration number
@@ -284,6 +288,7 @@ moveSentence();'
   Course <- input$Course
   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
   Years <- input$Year
+  Complete <- "0%"
   Buttons <- input$Buttons
   Users <- "Administrator"
   Actions <- "INSERT NEW"
@@ -292,7 +297,7 @@ moveSentence();'
   insert_query_1 <- paste0("INSERT INTO student_details
                   VALUES('",name,"',",ID,",'",gender,"','",Reg_No,"','",Code,"',
                                     '",Course,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),
-                                    ",Years,",'",Buttons,"')")
+                                    ",Years,",'",Complete,"','",Buttons,"')")
   insert_query_2 <- paste0("INSERT INTO student_timeline
                   VALUES('",Reg_No,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
   DBI::dbSendQuery(con,insert_query_1)
@@ -323,7 +328,7 @@ moveSentence();'
    session = session,
    inputId = "student_reg",
    choices = data$table_data[, Serial],
-   selected = data$table_data[, Serial][1],
+   selected = "",
    server = TRUE,
    options = list(maxOptions = 3)
   ) 
@@ -351,12 +356,11 @@ moveSentence();'
  observeEvent(input$confirm_editreg,{ 
   
   # Load data from MySQL table into a data.table
-  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   selectedRow <- as.numeric(strsplit(input$editreg_button, "_")[[1]][2])
   search_string <- paste0("editreg_ ",selectedRow)
   search_string <- paste0("\\b", search_string, "\\b")
   
-  row <- data[grepl(search_string, data$Actions), ]
+  row <-  data$table_data[Actions %like% search_string, ]
   updateSelectInput(session, "edit_code", selected = row[, Code])
   updateTextInput(session, "edit_name", value = row[, Name])
   updateSelectInput(session, "edit_gender", selected = row[, Gender])
@@ -504,7 +508,7 @@ moveSentence();'
   
   # Load data from MySQL table into a data.table
   delete_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
-  
+
   # Get the serial number
   row <- delete_data[Actions %like% search_string_1, ]
   Serial <- row[, Serial]
@@ -546,7 +550,7 @@ moveSentence();'
   
   # import data
   promote_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
-  filtered_df <- promote_data[Actions %like% search_string, ]
+ filtered_df <- promote_data[Actions %like% search_string, ]
   current_year <- filtered_df[, Year]
 
     # add a plus one
@@ -556,9 +560,8 @@ moveSentence();'
   code <- filtered_df$Code
   serial <- filtered_df$Serial
   year <- filtered_df$Year
-  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
-  student_units <- units[(course == "BOTH" | course == code) & 
-                          year == current_year, ]  
+  student_units <- units[year == current_year &
+                          (course == "BOTH" | course == code), ]  
   student_reg_units <- register_units$data_table[Serial == serial & 
                                                   Year == year, 
                                                  ][order(Code)]
@@ -569,7 +572,11 @@ moveSentence();'
      length(list)== 0) {
    
    # update the row
-   update_year_query <- sprintf("UPDATE student_details SET Year = %s WHERE Actions LIKE '%%%s%%'", new_year, search_string) 
+   per <- "0%"
+   update_year_query <- sprintf("UPDATE student_details 
+                                SET Year = %s,
+                                Complete = '%s'
+                                WHERE Actions LIKE '%%%s%%'", new_year, per, search_string) 
    DBI::dbExecute(con,update_year_query)
    
    # Reload data from MySQL after deleting the row
@@ -742,6 +749,7 @@ moveSentence();'
   
   # import data
   details_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+ 
   filtered_df <- details_data[Actions %like% search_string, ]
   
   # Get the student in review
@@ -770,13 +778,15 @@ moveSentence();'
  
  ### STUDENT REGISTRATION
  observeEvent(input$student_reg, {
-  req(input$student_reg)
+  req(input$student_reg != "")
   student_reg <- input$student_reg
   shinyjs::hide("download") 
   
   # student details
   data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   student_data <- data[Serial == student_reg, ]
+  data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  
   student_year <- student_data[, Year]
   student_course <- student_data[, Course]
   student_serial <- student_data[, Serial]
@@ -794,20 +804,15 @@ moveSentence();'
   })
   
   # student_units
-  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
+  student_units <- units[year == student_year &
+                          (course == "BOTH" | course == student_code), ] 
   
-  student_units <- units[(course == "BOTH" | course == student_course) & 
-                          year == student_year, ] 
-
   list1 <- student_units[, code]
   
-  # already registered units
-  register_units$data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
   # create a table for a specific student
-  student_reg_units <- register_units$data_table[Serial == student_reg & 
-                                                  Year == student_year, 
-                                                 ][order(Code)]
-  
+  student_reg_units <- data_table[Serial == student_reg &
+                                   Year == student_year,
+                                  ][order(Code)]
   # registered current year units
   output$registered_units <- DT::renderDataTable(
    datatable(student_reg_units, escape = FALSE, selection = "none",
@@ -826,17 +831,17 @@ moveSentence();'
   )
   list2 <- student_reg_units[, Code]
   
-  # Rmaining units
+  # Remaining units
   list <- setdiff(list1, list2)
-  
   # Get the students registered for a single unit
-  registered_students <- register_units$data_table[, Serial]
+  registered_students <- data_table[, Serial]
   if(student_reg %in% registered_students){
    
    # already passed units
    n_passed <- student_reg_units[Status == "PASSED", .N]
    per <- n_passed/length(list1)
    update_progress("bar", per)
+   
   }
   
   # list update
@@ -881,8 +886,8 @@ moveSentence();'
    student_units_table <- student_units[, c("lecturer", "time") := 
                                          list(rep(sample2, length.out = num_rows),
                                               rep(sample1, length.out = num_rows))
-                                        ][, .(code, title, lecturer, time)]
-    
+   ][, .(code, title, lecturer, time)]
+   
    datatable(student_units_table, 
              escape = FALSE,
              selection = "none",
@@ -898,13 +903,12 @@ moveSentence();'
    )
   })
   
-  
   # approved marks
-  t_b_b <- register_units$data_table[Status == "PASSED" | Status == "FAILED", ]
+  t_b_b <- data_table[Status == "PASSED" | Status == "FAILED", ]
   
   # first year
-  chosen_units1 <- units[course == "BOTH" | course == student_course &
-                         year == 1, ]
+  chosen_units1 <- units[year == 1 &
+                          (course == "BOTH" | course == student_code), ]
   
   codes1 <-  chosen_units1[, code]
   t_b_1 <- t_b_b[Serial == input$student_reg & Code %in% codes1,
@@ -913,11 +917,11 @@ moveSentence();'
   # Calculate stats
   n_total1 <- t_b_1[, .N]
   total1 <- t_b_1[, sum(Score)]
-  average1 <- round(total1/n_total1,2)
+  average1 <- round(total1/n_total1, 2)
   
   # second year
-  chosen_units2 <- units[course == "BOTH" | course == student_course &
-                          year == 2, ]
+  chosen_units2 <- units[year == 2 & 
+                          (course == "BOTH" | course == student_code), ]
   
   codes2 <-  chosen_units2[, code]
   t_b_2 <- t_b_b[Serial == input$student_reg & Code %in% codes2,
@@ -925,11 +929,12 @@ moveSentence();'
   # Calculate stats
   n_total2 <- t_b_2[, .N]
   total2 <- t_b_2[, sum(Score)]
-  average2 <- round(total2/n_total2,2)
+  average2 <- round(total2/n_total2, 2)
   
   # third year
-  chosen_units3 <- units[course == "BOTH" | course == student_course &
-                          year == 3, ]
+  chosen_units3 <- units[year == 3 &
+                          (course == "BOTH" | course == student_code), ]
+                          
   
   codes3 <-  chosen_units3[, code]
   t_b_3 <- t_b_b[Serial == input$student_reg & Code %in% codes3,
@@ -937,11 +942,11 @@ moveSentence();'
   # Calculate stats
   n_total3 <- t_b_3[, .N]
   total3 <- t_b_3[, sum(Score)]
-  average3 <- round(total3/n_total3,2)
+  average3 <- round(total3/n_total3, 2)
   
   # fourth year
-  chosen_units4 <- units[course == "BOTH" | course == student_course &
-                          year == 4, ]
+  chosen_units4 <- units[year == 4 &
+                          (course == "BOTH" | course == student_code), ]
   
   codes4 <-  chosen_units4[, code]
   t_b_4 <- t_b_b[Serial == input$student_reg & Code %in% codes4,
@@ -952,15 +957,15 @@ moveSentence();'
   average4 <- round(total4/n_total4,2)
   
   # final average
-  student_f_units <- units[course == "BOTH" | course == student_course, ]
+  student_f_units <- units[course == "BOTH" | course == student_code, ]
   
- codes_all <- c(t_b_1[, Code], t_b_2[, Code], t_b_3[, Code], t_b_4[, Code])
+  codes_all <- c(t_b_1[, Code], t_b_2[, Code], t_b_3[, Code], t_b_4[, Code])
   t_b_f <- t_b_b[Serial == input$student_reg & 
                   Code %in% codes_all,
                  .(Serial, Code, Course, Grade, Score)]
   n_total <- t_b_f[, .N]
   total <- t_b_f[, sum(Score)]
-  average <- round(total/n_total,2)
+  average <- round(total/n_total, 2)
   
   # To find final averages
   if(student_year == 1){
@@ -996,8 +1001,8 @@ moveSentence();'
    #finale data
    data <- data.frame(
     Year = c("First","Second"),
-    Units = c(n_total1,n_total2),
-    Average = c(average1,average2)
+    Units = c(n_total1, n_total2),
+    Average = c(average1, average2)
    )
    t_b_1 <- t_b_b[Serial == input$student_reg & Year == 1,
                   .(Code, Course, Grade)
@@ -1038,13 +1043,13 @@ moveSentence();'
    
    #finale data
    data <- data.frame(
-    Year = c("First","Second","Third"),
-    Units = c(n_total1,n_total2,n_total3),
-    Average = c(average1,average2,average3)
+    Year = c("First", "Second", "Third"),
+    Units = c(n_total1, n_total2, n_total3),
+    Average = c(average1, average2, average3)
    )
    t_b_1 <- t_b_b[Serial == input$student_reg & Year == 1,
                   .(Code, Course, Grade)
-                  ][order(Code)]
+   ][order(Code)]
    output$year_1_marks <- DT::renderDataTable(
     datatable(t_b_1, escape = FALSE, selection = "none",
               options = list(
@@ -1060,7 +1065,7 @@ moveSentence();'
    )
    t_b_2 <- t_b_b[Serial == input$student_reg & Year == 2,
                   .(Code, Course, Grade)
-                  ][order(Code)]
+   ][order(Code)]
    output$year_2_marks <- DT::renderDataTable(
     datatable(t_b_2, escape = FALSE, selection = "none",
               options = list(
@@ -1076,7 +1081,7 @@ moveSentence();'
    )
    t_b_3 <- t_b_b[Serial == input$student_reg & Year == 3,
                   .(Code, Course, Grade)
-                  ][order(Code)]
+   ][order(Code)]
    output$year_3_marks <- DT::renderDataTable(
     datatable(t_b_3, escape = FALSE, selection = "none",
               options = list(
@@ -1095,13 +1100,14 @@ moveSentence();'
    
    #finale data
    data <- data.frame(
-    Year = c("First","Second","Third","Fourth"),
-    Units = c(n_total1,n_total2,n_total3,n_total4),
-    Average = c(average1,average2,average3,average4)
+    Year = c("First", "Second", "Third", "Fourth"),
+    Units = c(n_total1, n_total2, n_total3, n_total4),
+    Average = c(average1, average2, average3, average4)
    )
    t_b_1 <- t_b_b[Serial == input$student_reg & Year == 1,
                   .(Code, Course, Grade)
-                  ][order(Code)]
+   ][order(Code)]
+   
    output$year_1_marks <- DT::renderDataTable(
     datatable(t_b_1, escape = FALSE, selection = "none",
               options = list(
@@ -1117,7 +1123,7 @@ moveSentence();'
    )
    t_b_2 <- t_b_b[Serial == input$student_reg & Year == 2,
                   .(Code, Course, Grade)
-                  ][order(Code)]
+   ][order(Code)]
    output$year_2_marks <- DT::renderDataTable(
     datatable(t_b_2, escape = FALSE, selection = "none",
               options = list(
@@ -1131,10 +1137,10 @@ moveSentence();'
               ) 
     )
    )
-
+   
    t_b_3 <- t_b_b[Serial == input$student_reg & Year == 3,
                   .(Code, Course, Grade)
-                  ][order(Code)]
+   ][order(Code)]
    output$year_3_marks <- DT::renderDataTable(
     datatable(t_b_3, escape = FALSE, selection = "none",
               options = list(
@@ -1148,7 +1154,7 @@ moveSentence();'
               ) 
     )
    )
-
+   
    t_b_4 <- t_b_b[Serial == input$student_reg & Year == 4,
                   .(Code, Course, Grade)
                   ][order(Code)]
@@ -1168,37 +1174,37 @@ moveSentence();'
   }
   #transcript tables
   table_1 <- t_b_1[order(Code), .(Code, Course, Grade)]
-   new_row_1 <- data.table(
-    Code = "",
-    Course = "AVERAGE SCORE",
-    Grade = as.character(average1)
-    )
-   table_data1 <- rbind(table_1, new_row_1)
-   
-   table_2 <- t_b_2[order(Code), .(Code, Course, Grade)]
-   new_row_2 <- data.table(
-    Code = "",
-    Course = "AVERAGE SCORE",
-    Grade = as.character(average2)
-   )
-   table_data2 <- rbind(table_2, new_row_2)
-   
-   table_3 <- t_b_3[order(Code), .(Code, Course, Grade)]
-   new_row_3 <- data.table(
-    Code = "",
-    Course = "AVERAGE SCORE",
-    Grade = as.character(average3)
-   )
-   table_data3 <- rbind(table_3, new_row_3)
+  new_row_1 <- data.table(
+   Code = "",
+   Course = "AVERAGE SCORE",
+   Grade = as.character(average1)
+  )
+  table_data1 <- rbind(table_1, new_row_1)
   
-   table_4 <- t_b_4[order(Code), .(Code, Course, Grade)]
-   new_row_4 <- data.table(
-    Code = "",
-    Course = "AVERAGE SCORE",
-    Grade = as.character(average4)
-   )
-   table_data4 <- rbind(table_4, new_row_4)
-   
+  table_2 <- t_b_2[order(Code), .(Code, Course, Grade)]
+  new_row_2 <- data.table(
+   Code = "",
+   Course = "AVERAGE SCORE",
+   Grade = as.character(average2)
+  )
+  table_data2 <- rbind(table_2, new_row_2)
+  
+  table_3 <- t_b_3[order(Code), .(Code, Course, Grade)]
+  new_row_3 <- data.table(
+   Code = "",
+   Course = "AVERAGE SCORE",
+   Grade = as.character(average3)
+  )
+  table_data3 <- rbind(table_3, new_row_3)
+  
+  table_4 <- t_b_4[order(Code), .(Code, Course, Grade)]
+  new_row_4 <- data.table(
+   Code = "",
+   Course = "AVERAGE SCORE",
+   Grade = as.character(average4)
+  )
+  table_data4 <- rbind(table_4, new_row_4)
+  
   # allow transcripts download
   if(nrow(t_b_1) > 0){
    enable("transcripts")
@@ -1208,10 +1214,10 @@ moveSentence();'
   # comment
   a <- average
   class <- case_when(
-   a >= 70 ~ "FIRST CLASS HONOURS",
-   a >= 60 ~ "SECOND CLASS-UPPER",
-   a >= 50 ~ "SECOND CLASS-LOWER",
-   a >= 1 ~ "PASS",
+   a >= 70 ~ "First Class Honours",
+   a >= 60 ~ "Second Class-Upper",
+   a >= 50 ~ "Second Class-Lower",
+   a >= 1 ~ "Pass",
    TRUE ~ ""
   )
   # availability conditions
@@ -1222,7 +1228,7 @@ moveSentence();'
    m_units <- setdiff(list1, r_units)
    
    # failed units
-   file_2 <- register_units$data_table[Status == "FAILED", ]
+   file_2 <- data_table[Status == "FAILED", ]
    list_2 <- file_2[, Code]
    
    # print feedback
@@ -1262,7 +1268,8 @@ moveSentence();'
     e_charts() |> 
      e_gauge(average, class) |> 
      e_animation(duration = 4000)|>
-     e_title('% SCORE',left='center')
+     e_title("Average",
+             left='center')
    })
    
    # graph 
@@ -1276,7 +1283,7 @@ moveSentence();'
            itemStyle = list(
             color = htmlwidgets::JS("
           function(params) {
-          var colorList = ['#00ff00','#00ff00','#00ff00','#00ff00','#ff0000'];
+          var colorList = ['#808080','#606060','#404040','#282828'];
           return colorList[params.dataIndex]
           } 
           "),
@@ -1290,8 +1297,8 @@ moveSentence();'
      e_legend(show = FALSE) |>
      e_datazoom(type = "inside") |>
      e_grid(show = TRUE)|>
-     e_title(text = student_data$Reg,
-             subtext = student_data$Course,
+     e_title(text = student_data[, Serial],
+             subtext = student_data[, Course],
              left = "center", top = 1,
              sublink = "https://github.com/ndeke254",
              textStyle = list(fontWeight = "normal"))|>
@@ -1306,7 +1313,7 @@ moveSentence();'
               )
      ) |> 
      e_image_g(
-      right = 120,
+      right = 100,
       top = 90,
       z = -999,
       style = list(
@@ -1337,20 +1344,20 @@ moveSentence();'
  observeEvent(input$transcripts,{
   student_reg <- input$student_reg
   
-  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
-  
   #student details
   data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  
   student_data <- data[Serial == student_reg, ]
   student_year <- student_data[, Year]
   student_course <- student_data[, Code]
   
   #approved marks
-  t_b_b <- register_units$data_table[Status == "PASSED" | Status == "FAILED", ]
+  t_b_b <- data_table[Status == "PASSED" | Status == "FAILED", ]
   
   # first year
-  chosen_units1 <- units[course == "BOTH" | course == student_course &
-                          year == 1, ]
+  chosen_units1 <- units[year == 1 & 
+                          (course == "BOTH" | course == student_course), ]
   
   codes1 <-  chosen_units1[, code]
   t_b_1 <- t_b_b[Serial == input$student_reg & Code %in% codes1,
@@ -1359,11 +1366,11 @@ moveSentence();'
   # Calculate stats
   n_total1 <- t_b_1[, .N]
   total1 <- t_b_1[, sum(Score)]
-  average1 <- round(total1/n_total1,2)
+  average1 <- round(total1/n_total1, 2)
   
   # second year
-  chosen_units2 <- units[course == "BOTH" | course == student_course &
-                          year == 2, ]
+  chosen_units2 <- units[year == 2 & 
+                          (course == "BOTH" | course == student_course), ]
   
   codes2 <-  chosen_units2[, code]
   t_b_2 <- t_b_b[Serial == input$student_reg & Code %in% codes2,
@@ -1371,11 +1378,11 @@ moveSentence();'
   # Calculate stats
   n_total2 <- t_b_2[, .N]
   total2 <- t_b_2[, sum(Score)]
-  average2 <- round(total2/n_total2,2)
+  average2 <- round(total2/n_total2, 2)
   
   # third year
-  chosen_units3 <- units[course == "BOTH" | course == student_course &
-                          year == 3, ]
+  chosen_units3 <- units[year == 3 & 
+                          (course == "BOTH" | course == student_course), ]
   
   codes3 <-  chosen_units3[, code]
   t_b_3 <- t_b_b[Serial == input$student_reg & Code %in% codes3,
@@ -1383,19 +1390,19 @@ moveSentence();'
   # Calculate stats
   n_total3 <- t_b_3[, .N]
   total3 <- t_b_3[, sum(Score)]
-  average3 <- round(total3/n_total3,2)
+  average3 <- round(total3/n_total3, 2)
   
   # fourth year
-  chosen_units4 <- units[course == "BOTH" | course == student_course &
-                          year == 4, ]
+  chosen_units4 <- units[year == 4 & 
+                          (course == "BOTH" | course == student_course), ]
   
   codes4 <-  chosen_units4[, code]
   t_b_4 <- t_b_b[Serial == input$student_reg & Code %in% codes4,
                  .(Serial, Code, Course, Grade, Score)]
   # Calculate stats
   n_total4 <- t_b_4[, .N]
-  total3 <- t_b_4[, sum(Score)]
-  average4 <- round(total4/n_total4,2)
+  total4 <- t_b_4[, sum(Score)]
+  average4 <- round(total4/n_total4, 2)
   
   # final average
   student_f_units <- units[course == "BOTH" | course == student_course, ]
@@ -1406,9 +1413,9 @@ moveSentence();'
                  .(Serial, Code, Course, Grade, Score)]
   n_total <- t_b_f[, .N]
   total <- t_b_f[, sum(Score)]
-  average <- round(total/n_total,2)
+  average <- round(total/n_total, 2)
   
-  #To find final averages
+  #To find final averages 
   if(student_year == 1){
    
    #finale data
@@ -1421,25 +1428,25 @@ moveSentence();'
    
    #finale data
    data <- data.frame(
-    Year = c("First","Second"),
-    Units = c(n_total1,n_total2),
-    Average = c(average1,average2)
+    Year = c("First", "Second"),
+    Units = c(n_total1, n_total2),
+    Average = c(average1, average2)
    )
   }else if(student_year == 3){
    
    #finale data
    data <- data.frame(
-    Year = c("First","Second","Third"),
-    Units = c(n_total1,n_total2,n_total3),
-    Average = c(average1,average2,average3)
+    Year = c("First", "Second", "Third"),
+    Units = c(n_total1, n_total2, n_total3),
+    Average = c(average1, average2, average3)
    )
   }else{
    
    #finale data
    data <- data.frame(
-    Year = c("First","Second","Third","Fourth"),
-    Units = c(n_total1,n_total2,n_total3,n_total4),
-    Average = c(average1,average2,average3,average4)
+    Year = c("First", "Second", "Third", "Fourth"),
+    Units = c(n_total1, n_total2, n_total3, n_total4),
+    Average = c(average1, average2, average3, average4)
    )
   }
   
@@ -1497,15 +1504,15 @@ moveSentence();'
   )
 
    
- student_units <- units[course == "BOTH" | course == student_course &
-                         year == student_year, ]
+ student_units <- units[year == student_year & 
+                         (course == "BOTH" | course == student_course), ]
   list1 <- student_units[, code]
   
   # missing units
   r_units <- t_b_f[, Code]
   m_units <- setdiff(list1, r_units)
   # failed units
-  file_2 <- register_units$data_table[Status == "FAILED", ]
+  file_2 <- data_table[Status == "FAILED", ]
   list_2 <- file_2[, Code]
   
   #print feedback
@@ -1637,18 +1644,20 @@ moveSentence();'
   req(input$student_reg != "")
   student_reg <- input$student_reg
   #student details
-  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details")) 
+  data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  
   student_data <- data[Serial == student_reg, ]
   student_year <- student_data[, Year]
   student_course <- student_data[, Code]
+  
   if(input$type %in% "SUPPLEMENTARY"){
    
-   #already registered units
-   register_units$data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
    # create a table for a specific student
-   student_reg_units <- register_units$data_table[Serial == student_reg &
-                                                   Year == student_year
-   ][order(Code)]
+   student_reg_units <- data_table[Serial == student_reg &
+                                    Year == student_year
+                                   ][order(Code)]
+   
    
    # failed units
    failed_units <- student_reg_units[Status == "FAILED" &
@@ -1664,17 +1673,15 @@ moveSentence();'
   }else{
    
    # update field with unregistered units only
-   code <- student_data$Code
-   units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
-   student_units <- units[course == "BOTH" | course == code &
-                           year == student_year, ]
+   student_units <- units[year == student_year &
+                          (course == "BOTH" | course == student_course), ]
    # create a table for a specific student
-   student_reg_units <- register_units$data_table[Serial == student_reg &
-                                                   Year == student_year
-   ][order(Code)]
-   list1 <- student_units[,code]
+   student_reg_units <- data_table[Serial == student_reg &
+                                    Year == student_year]
+   list1 <- student_units[, code]
    list2 <- student_reg_units[, Code]
    list <- setdiff(list1, list2)
+   
    req(length(list)>0)
    updateSelectizeInput(
     session = session,
@@ -1762,6 +1769,7 @@ moveSentence();'
     paste("Please set a later date and time!")
    })
   }
+  
  })
  # close course registration
  observeEvent(input$close, {
@@ -1845,8 +1853,8 @@ moveSentence();'
  })
  
  observeEvent(input$register_code, {
-  units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
-  #update course titles
+
+    #update course titles
   t <- input$register_code
   course_title <- units[code == t, title][1]
   updateTextInput(
@@ -1858,24 +1866,26 @@ moveSentence();'
  
  # register a unit
  observeEvent(input$register, {
-  reg_no <- input$student_reg
+  student_reg <- input$student_reg
   if(input$register_code == ""){
    showToast("info", "Select a Unit!",
              .options = myToastOptions )
-  }else if(input$register_code != "" && reg_no != "" ){
+  }else if(input$register_code != "" && student_reg != "" ){
    req(input$register_unit)
    req(input$register_code)
    
    #student details
-   student_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
-   student_data <- student_data[Serial == reg_no, ]
+   data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+   student_data <- data[Serial == student_reg, ]
    student_reg <- student_data[, Serial]
+   student_year <- student_data[, Year]
+   student_course <- student_data[, Code]
    student_name <- student_data[, Name]
    Code <- input$register_code
    Course <- input$register_unit
    Type <- input$type
-   student_year <- student_data[, Year]
    Date <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+   
    if(input$type != "SUPPLEMENTARY"){
     
     # Insert data into the database
@@ -1899,18 +1909,18 @@ moveSentence();'
     )
    }
    # Reload data from MySQL
-   data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units")) 
-   
+  data_table  <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units")) 
+
    # update field with unregistered units only
-   code <- student_data$Code
-   units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
-   student_units <- units[course == "BOTH" | course == code & 
-                           year == student_year, ]
-   
+   student_units <- units[year == student_year &
+                           (course == "BOTH" | course == student_course), ]
    # create a table for a specific student
    student_reg_units <- data_table[Serial == student_reg &
                                     Year == student_year
-   ][order(Code)]
+                                   ][order(Code)]
+   list1 <- student_units[, code]
+   list2 <- student_reg_units[, Code]
+   list <- setdiff(list1, list2)
    
    output$registered_units <- DT::renderDataTable(
     datatable(student_reg_units, escape = FALSE, selection = "none",
@@ -1927,10 +1937,8 @@ moveSentence();'
               ) 
     )
    )
-   list1 <- student_units[, code]
-   list2 <- student_reg_units[, Code]
-   list <- setdiff(list1, list2)
-   if(length(list)>0) {
+   
+    if(length(list)>0) {
     updateSelectizeInput(
      session = session,
      inputId = "register_code",
@@ -1944,7 +1952,6 @@ moveSentence();'
      session = session,
      inputId = "register_code",
      choices = NULL,
-     selected = "",
      server = TRUE,
      options = list(maxOptions = 3) 
     )
@@ -1991,7 +1998,6 @@ moveSentence();'
     value = ""
    )
    data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-   
    # Registered but with no marks units
    registered_units <- data_table[Serial == input$reg &
                                    (is.na(Score) | Status == "REGISTERED"), ]
@@ -2018,8 +2024,6 @@ moveSentence();'
  
  observeEvent(input$code, {
   if(input$id == "0"){
-   units <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
-   
    #update course titles
    t <- input$code
    course_title <- units[code == t, title][1]
@@ -2037,11 +2041,13 @@ moveSentence();'
   # check exam type
   exam_type <- data_table[Serial == input$reg &
                            Code == input$code, Type]
- 
   if(exam_type == "FIRST ATTEMPT"){
    updateTextInput(session, "grade", label = "Grade")
    updateNumericInput(session, "score", "Score")
   }else{
+   showToast(
+    "info", "Mark should be < 50%", .options = myToastOptions
+   )
    updateTextInput(session, "grade", label = "Grade *")
    updateNumericInput(session, "score", "Score *")
   }
@@ -2109,10 +2115,11 @@ moveSentence();'
   
   # create a table for a specific student
   student_marks <- register_units$data_table[!is.na(Score),
-                                             .(Serial, Name, Code, Course, 
+                                             .(Serial, Name, Code, 
+                                               Course = str_to_title(Course), 
                                                Score, Grade, Lecturer, Date,
                                                Actions)
-  ][order(-Date)]
+                                             ][order(-Date)]
   datatable(student_marks,
             escape = FALSE,
             selection = "none",
@@ -2222,13 +2229,13 @@ moveSentence();'
  observeEvent(input$confirm_editreg,{
   
   # Load data from MySQL table into a data.table
-  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
+  data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details")) 
   edit_modal_dialog()
   selectedRow <- as.numeric(strsplit(input$editreg_button, "_")[[1]][2])
   search_string <- paste0("editreg_ ",selectedRow)
   search_string <- paste0("\\b", search_string, "\\b")
   
-  row <- data[grepl(search_string, data$Actions), ]
+  row <- data[Actions %like% search_string, ]
   updateSelectInput(session, "edit_code", selected = row[, Code])
   updateTextInput(session, "edit_name", value = row[, Name])
   updateSelectInput(session, "edit_gender", selected = row[, Gender])
@@ -2255,7 +2262,7 @@ moveSentence();'
   
   # Load data from MySQL table into a data.table
   marks_data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-  
+   
   # Get the serial number
   row <- marks_data[Actions %like% search_string_1, ]
   status <- row[, Status]
@@ -2307,27 +2314,26 @@ moveSentence();'
   
   # Load data from MySQL table into a data.table
   data <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
-  units_table <- as.data.table(dbGetQuery(con, "SELECT * FROM course_units"))
   selectedRow <- as.numeric(strsplit(input$edit_button, "_")[[1]][2])
   search_string <- paste0("edit_ ",selectedRow)
   search_string <- paste0("\\b", search_string, "\\b")
   
   row <- data[Actions %like% search_string, ]
   status <- row[, Status]
-  
-  if(status %in% "RELEASED") {
+
+    if(status %in% "RELEASED") {
+   updateSelectizeInput(session, "reg", choices = row[, Serial], selected = row[, Serial])
+   updateTextInput(session, "name", value = row[, Name])
+   updateSelectizeInput(session, "code", choices = units[, code], selected = row[, Code])
+   updateNumericInput(session, "course", value = row[, Course])
    updateTextInput(session, "score", value = row[, Score])
    updateTextInput(session, "grade", value = row[, Grade])
    updateTextInput(session, "actions", value = row[, Actions])
-   updateNumericInput(session, "course", value = row[, Course])
-   updateTextInput(session, "name", value = row[, Name])
-   updateSelectInput(session, "reg", selected = row[, Serial])
    updateTextInput(session, "id", value = "1")
-   updateSelectInput(session, "code", choices = units_table[, code],
-                     selected = row[, Code])
    
    disable("code")
    disable("reg")
+   
    showNotification("Edit the score only!", duration = 10, type = "message")
    removeModal()
    
@@ -2389,8 +2395,11 @@ moveSentence();'
    enable("code")
    enable("reg")
    updateTextInput(session, "id", value = "0")
-   updateTextInput(session, "score", value = "")
+   updateTextInput(session, "name", value = "")
    updateSelectizeInput(session, "code", choices = "", selected ="")
+   updateTextInput(session, "score", value = "")
+   updateTextInput(session, "grade", value = "")
+   
   }
  })
  
@@ -2406,7 +2415,8 @@ moveSentence();'
   action <- row[, Actions]
   score <- row[, Score]
   status <- row[, Status]
-  if(status %in% "RELEASED") {
+
+    if(status %in% "RELEASED") {
    if(score > 40){
     Status <- "PASSED"
    }else if(score < 40){
@@ -2449,6 +2459,28 @@ moveSentence();'
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
    DBI::dbSendQuery(con,timeline_query)
    
+   # update % of completion for current year
+   # student passed units
+   student_year <- data$table_data[Serial == reg_no, Year]
+   student_course <- data$table_data[Serial == reg_no, Code]
+   n_passed <- register_units$data_table[Serial == reg_no & 
+                                          Year == student_year &
+                                          Status == "PASSED",
+                                         .N]
+   # overall year student_units
+   n_units <- units[year == student_year &
+                     (course == "BOTH" | course == student_course), .N]
+   #% of completion
+    per <- (n_passed/n_units)*100
+    per <- paste0(round(per, 2), "%")
+   # create the query
+   update_query <- sprintf("UPDATE student_details SET
+                           Complete = '%s'
+                           WHERE Serial = '%s'",
+                           per, reg_no)
+   DBI::dbSendQuery(con,update_query)
+   # Reload data
+   data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   }else{
    showToast("error",
              "Not Allowed: Approved!",
@@ -2457,7 +2489,7 @@ moveSentence();'
  })
  
  observe({
-  
+  data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   # output value boxes
   current_year <- lubridate::year(Sys.Date())
   current_date <- format(Sys.Date(), "%d-%m-%Y")
