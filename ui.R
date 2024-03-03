@@ -66,7 +66,7 @@ ui <- navbarPage(
                                     type = "image/png",
                                     href = "logo.png"),
   tags$title("University of Kitui")), # nolint
- title = tags$img(src = "logo.png"), # nolint
+ title = tags$img(src = "logo.png", draggable = FALSE), # nolint
  theme = bslib::bs_theme(4),
  tabPanel(
     title = "Lecturer",

@@ -67,6 +67,7 @@ label {
     background-image: linear-gradient(270deg, #bed1e5, #ffffff94);
 }
 img {
+ pointer-events: none;
  width: 75px;
 }
 .navbar:not(.fixed-bottom):not(.navbar-fixed-bottom):not(.navbar-fixed-bottom) {
