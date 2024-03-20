@@ -590,3 +590,6 @@ div#student_course {
 .fa-phone:before {
  zoom: 0.9;
 }
+div#tuition {
+    display: flex;
+}

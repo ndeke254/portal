@@ -26,6 +26,7 @@ moveSentence();'
  # Load data from MySQL into a reactiveValues object
  data <- reactiveValues(table_data = NULL)
  register_units <- reactiveValues(data_table = NULL)
+ token_data <- reactiveValues(data_table = NULL)
  
  # Load data from MySQL table into a data.table
  data$table_data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
@@ -786,6 +787,9 @@ moveSentence();'
   data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   student_data <- data[Serial == student_reg, ]
   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
+  token_query <- sprintf("SELECT * FROM student_tokens WHERE
+ Serial LIKE '%s' ORDER BY Sequence DESC", student_reg)
+  token_table <- as.data.table(dbGetQuery(con, token_query))[,.(Amount, Date, Token)]
   
   student_year <- student_data[, Year]
   student_course <- student_data[, Course]
@@ -794,14 +798,29 @@ moveSentence();'
   student_code <- student_data[, Code]
   
   # student name
-  output$student_name <- renderText({
-   paste(student_serial, student_name)
-  })
-  
+  updateTextInput(
+   session = session,
+   inputId = "student_name",
+   value = student_name
+  )
   # student_course
-  output$student_course <- renderText({
-   paste(student_code,":", student_course, "in Year", student_year)
-  })
+  updateTextInput(
+   session = session,
+   inputId = "student_course",
+   value = paste(student_code," - ", student_course)
+  )
+  updateTextInput(
+   session = session,
+   inputId = "current_year",
+   value = student_year
+  )
+  # render tokens table
+  output$student_tokens <- renderDataTable({
+   datatable(token_table,
+             escape = FALSE,
+             selection = "none"
+             )
+   })
   
   # student_units
   student_units <- units[year == student_year &
@@ -1336,6 +1355,48 @@ moveSentence();'
      e_title("No Data Available", left = "center")
    })
   }
+  # value boxes for fees
+  fees_lookup <- c("1" = "28500",
+                   "2" = "26000",
+                   "3" = "26000",
+                   "4" = "26000"
+                   )
+  
+  # Vectorized approach to fees look-up
+  fees <- fees_lookup[[student_year]]
+  #######
+  output$total_fees <- renderValueBox({
+   value <- paste("Ksh.", prettyNum(fees, big.mark =',', scientific = FALSE))
+   my_valuebox(value,  
+               title = "TUITION FEES INVOICE",
+               subtitle = paste("Fees payable for year", student_year),
+               icon = icon("file-invoice"),
+               color = "light-blue"
+   )
+  })
+  ########
+  output$paid_fees <- renderValueBox({
+   value <- token_table[, sum(Amount)] 
+   value <- paste("Ksh.", prettyNum(value, big.mark =',', scientific = FALSE))
+   my_valuebox(value,  
+               title = "TOTAL PAID",
+               subtitle = paste("You have paid"),
+               icon = icon("money-check"),
+               color = "light-blue"
+   )
+  })
+  #######
+  output$balance_fees <- renderValueBox({
+   paid <- token_table[, sum(Amount)] 
+   value <- as.numeric(fees) - paid
+   value <- paste("Ksh.", prettyNum(value, big.mark =',', scientific = FALSE))
+   my_valuebox(value,  
+               title = "OUTSTANDING BALANCE",
+               subtitle = paste("Amount to clear"),
+               icon = icon("sack-xmark"),
+               color = "light-blue"
+   )
+  })
  })
  
  # prepare and download transcripts
@@ -2208,13 +2269,28 @@ moveSentence();'
   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
   Actions <- "PAID FEES"
   Amount <- sample(seq(1000, 10000, by = 5)*2, 1)
-  Description <- paste("Paid $", Amount, " Tuition fee for SEM 1 2024", sep = "")
+  Description <- paste("Paid Ksh.", Amount, " Tuition fee for SEM 1 2024", sep = "")
   timeline_query <- paste0("INSERT INTO student_timeline
                   VALUES('",reg_no,"',STR_TO_DATE('",Dates,"','%d/%m/%Y %H:%i:%s'),'",Users,"','",Actions,"','",Description,"')")
   DBI::dbSendQuery(con,timeline_query)
   showToast(
    "success", "Payment Accepted", .options = myToastOptions
   )
+  # update tokens table with next number
+  token_query <- sprintf("SELECT * FROM student_tokens WHERE
+ Serial LIKE '%s' ORDER BY Sequence DESC", reg_no)
+  token_table <- as.data.table(dbGetQuery(con, token_query))
+  N <- token_table[,.N]
+  Sequence <- as.numeric(N)+1
+  
+  Token <- paste(gsub("(.{4})", "\\1 ", 
+                      paste(sample(0:9, 12, replace = TRUE), collapse = "")), collapse = "")
+  tokens_query <- paste0("INSERT INTO student_tokens
+                       VALUES (", Sequence, ",'", reg_no, "', ", Amount, ", STR_TO_DATE('", Dates, "', '%d/%m/%Y %H:%i:%s'), '", Token, "')")
+  
+  DBI::dbSendQuery(con,tokens_query)
+  # Reload data from DB
+  token_data$data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM student_tokens"))
  })
  
  # customize mark buttons functionality
@@ -2719,8 +2795,7 @@ moveSentence();'
              .options = myToastOptions)
   }
  })
- 
- 
+
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends
  })

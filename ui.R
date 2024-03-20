@@ -414,11 +414,26 @@ ui <- navbarPage(
               multiple = FALSE,
               choices = NULL
             ),
-            textOutput(
-              outputId = "student_name"
+            disabled(
+             textInput(
+              inputId = "student_name",
+              label = "Student name",
+              placeholder = "Selected student"
+             )
             ),
-            textOutput(
-              outputId = "student_course"
+            disabled(
+             textInput(
+              inputId = "student_course",
+              label = "Student course",
+              placeholder = "Degree programme"
+             )
+            ),
+            disabled(
+             textInput(
+              inputId = "current_year",
+              label = "Year of study",
+              placeholder = "Current student year"
+             )
             ),
             progress_circle(
               value = 0,
@@ -569,6 +584,45 @@ ui <- navbarPage(
             )
           )
         )
+      ),
+      tabPanel(
+       title = "TOKENS",
+       br(),
+        column(
+         width = 12,
+         fluidRow(
+         box(
+        title = "Tuition Fees Track",
+        solidHeader = TRUE,
+        status = "primary",
+        width = 12,
+        div(
+         id = "tuition",
+         valueBoxOutput(
+          outputId = "total_fees",
+          width = 3
+         ),
+         valueBoxOutput(
+          outputId = "paid_fees",
+          width = 3
+         ),
+         valueBoxOutput( 
+          outputId = "balance_fees",
+          width = 3
+         )
+         )
+        )
+       )
+       ),
+      column(12,
+             box(
+              solidHeader = TRUE,
+                status = "primary",
+                width = 12,
+                title = paste("Student Tokens"),
+                DT::dataTableOutput("student_tokens")
+                )
+             )
       ),
       tabPanel(
         title = "ANALYSIS",
