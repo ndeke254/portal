@@ -75,7 +75,7 @@ ui <- navbarPage(
     useShinyjs(),
     useShinyFeedback(),
     useShinydashboard(),
-    includeCSS("www/styles.css"),
+   includeCSS("www/styles.css"),
     tabsetPanel(
       tabPanel(
         title = "RESULTS",
@@ -84,56 +84,75 @@ ui <- navbarPage(
           solidHeader = TRUE,
           status = "primary",
           width = 12,
-          splitLayout(
+          fluidRow(
+           style = "display: flex; flex-wrap: nowrap; align-items: center;",
+          column(
+           width = 2, 
             selectizeInput(
               inputId = "reg",
               label = "Registration number", # nolint
               multiple = FALSE,
               choices = NULL
-            ),
+            )
+           ),
+          column(
+           width = 2,
             disabled(
               textInput(
                 inputId = "name",
                 label = "Student name",
                 placeholder = "Selected student"
               )
-            ),
+            )
+           ),
+          column(
+           width = 1,
             selectizeInput(
               inputId = "code",
               label = "Code", # nolint
               multiple = FALSE,
               choices = NULL
-            ),
+            )
+           ),
+          column(
+           width = 3,
             disabled(
               textInput(
                 inputId = "course",
                 label = "Course",
                 placeholder = "Selected course"
               )
-            ),
+            )
+           ),
+          column(
+           width = 1,
             numericInput(
               inputId = "score",
               label = "Score",
               value = NULL,
               min = 1,
               max = 99
-            ),
+            )
+           ),
+          column(
+           width = 1,
             disabled(
               textInput("grade", "Grade"),
               hidden(textInput("id", "ID", value = 0)),
               hidden(textInput("time", "Time")),
               hidden(textInput("lecturer", "Lecturer")),
               hidden(textInput("actions", "Actions"))
-            ),
-            div(
-              style = "padding-top: 25px;",
+            )
+           ),
+          column(
+           width = 1,
               loadingButton("submit", "Submit",
                             style = "width: 100px",
                             loadingLabel = "Entering",
                             loadingSpinner = "cog")
-            )
+           )
           )
-        ),
+          ),
         tags$hr(),
         box(
           title = "Released Exam Results",
@@ -609,11 +628,16 @@ ui <- navbarPage(
          valueBoxOutput( 
           outputId = "balance_fees",
           width = 3
+         ),
+         valueBoxOutput( 
+          outputId = "last_token",
+          width = 3
          )
          )
         )
        )
        ),
+       fluidRow(
       column(12,
              box(
               solidHeader = TRUE,
@@ -623,6 +647,7 @@ ui <- navbarPage(
                 DT::dataTableOutput("student_tokens")
                 )
              )
+       )
       ),
       tabPanel(
         title = "ANALYSIS",

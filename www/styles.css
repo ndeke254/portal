@@ -1,9 +1,4 @@
-.shiny-split-layout>div {
-    overflow: unset;
-}
-.shiny-split-layout {
-    margin-top: 5px;
-}
+
 .navbar-brand {
   width: 15px;
  margin-right: 10rem;
@@ -31,9 +26,11 @@ label {
     font-size: 11px;
 }
 .btn-primary {
-  color: #ffffff;
-  border: 1px solid #c9c9c9;
-  background-color: #696f72;
+    font-size: 13px;
+    height: 35px;
+    color: #ffffff;
+    border: 1px solid #797979;
+    background-color: steelblue;
 }
 .btn-primary.disabled, .btn-primary:disabled {
     color: #000;
@@ -59,8 +56,9 @@ label {
 }
 .btn-primary:hover {
     color: #ffffff;
-    border: 1px solid #c9c9c9;
-    box-shadow: 0px 0px 10px 0px rgb(0 0 0 / 77%);}
+    border: 1px solid #00000000;
+    box-shadow: 0px 0px 10px 0px rgb(0 0 0 / 77%);
+}
     
 .navbar.navbar-default {
     box-shadow: 0px 0px 9px 0px #0000006b;
@@ -72,7 +70,6 @@ img {
 }
 .navbar:not(.fixed-bottom):not(.navbar-fixed-bottom):not(.navbar-fixed-bottom) {
     padding: 0;
-    margin-bottom: -16px;
 }
 
 .navbar-light .navbar-nav .nav-link, .navbar-light .navbar-nav .nav-tabs>li>a, .navbar-light .navbar-nav .nav-pills>li>a, .navbar.navbar-default .navbar-nav .nav-link, .navbar.navbar-default .navbar-nav .nav-tabs>li>a, .navbar.navbar-default .navbar-nav .nav-pills>li>a, .navbar-light ul.nav.navbar-nav>li>a, .navbar.navbar-default ul.nav.navbar-nav>li>a {
@@ -106,28 +103,12 @@ img {
     border: 2.5px solid rgb(20 255 25 / 10%);
 }
 #submit {
- height: 35.0px;
- border: 1px solid #767676;
- font-size: 13px;
  margin-left: 60px;
-}
-#registerButton{
-  font-size: 13px;
- height: 35.0px;
- border: 1px solid #767676;
-}
-
-#transcripts{
-  font-size: 13px;
- height: 35.0px;
- border: 1px solid #767676;
+ margin-top: 10px;
 }
 #register{
- font-size: 13px;
  margin-left: 25px;
  margin-top: 25px;
- height: 35.0px;
- border: 1px solid #767676;
 }
 .table th, .table td {
     padding: -0.5rem;
@@ -237,10 +218,7 @@ table.dataTable.table-hover>tbody>tr:hover>* {
         -webkit-appearance: none;
         margin: 0;
       }
-.selectize-control {
-    margin-bottom: -5px;
-}
-
+      
 .selectize-input.focus {
     border-color: #869bb1;
     outline: 0;

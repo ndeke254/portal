@@ -789,7 +789,7 @@ moveSentence();'
   data_table <- as.data.table(dbGetQuery(con, "SELECT * FROM registered_units"))
   token_query <- sprintf("SELECT * FROM student_tokens WHERE
  Serial LIKE '%s' ORDER BY Sequence DESC", student_reg)
-  token_table <- as.data.table(dbGetQuery(con, token_query))[,.(Amount, Date, Token)]
+  token_table <- as.data.table(dbGetQuery(con, token_query))[,.(`Amount Ksh`, Date, Token)]
   
   student_year <- student_data[, Year]
   student_course <- student_data[, Course]
@@ -1376,7 +1376,7 @@ moveSentence();'
   })
   ########
   output$paid_fees <- renderValueBox({
-   value <- token_table[, sum(Amount)] 
+   value <- token_table[, sum(`Amount Ksh`)] 
    value <- paste("Ksh.", prettyNum(value, big.mark =',', scientific = FALSE))
    my_valuebox(value,  
                title = "TOTAL PAID",
@@ -1387,13 +1387,23 @@ moveSentence();'
   })
   #######
   output$balance_fees <- renderValueBox({
-   paid <- token_table[, sum(Amount)] 
+   paid <- token_table[, sum(`Amount Ksh`)] 
    value <- as.numeric(fees) - paid
    value <- paste("Ksh.", prettyNum(value, big.mark =',', scientific = FALSE))
    my_valuebox(value,  
                title = "OUTSTANDING BALANCE",
                subtitle = paste("Amount to clear"),
                icon = icon("sack-xmark"),
+               color = "light-blue"
+   )
+  })
+  ######
+  output$last_token <- renderValueBox({
+   n <- token_table[, .N]
+   my_valuebox(n,  
+               title = "PAYMENTS INSTALMENTS",
+               subtitle = paste("Number of times student has paid."),
+               icon = icon("hashtag"),
                color = "light-blue"
    )
   })
