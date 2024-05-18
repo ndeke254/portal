@@ -103,7 +103,7 @@ img {
     border: 2.5px solid rgb(20 255 25 / 10%);
 }
 #submit {
- margin-left: 60px;
+ margin-left: 160px;
  margin-top: 10px;
 }
 #register{
@@ -345,7 +345,7 @@ a#download {
 .small-box {
     border-radius: 5px;
     margin-top: 25px;
-    box-shadow: 0 1px 4px 1px rgb(78 74 74);
+    box-shadow: 0 1px 5px 0px rgb(78 74 74);
 }
 small, .small {
     font-size: 100%;
@@ -364,10 +364,10 @@ small, .small {
   
 }
 div#flip {
-    margin-top: 5px;
     justify-content: center;
     align-items: center;
     display: flex;
+    margin-top: -20px;
 }
 .bar{
  width: 90px;
@@ -416,12 +416,8 @@ button#open {
     border: 1px #b7b7e3 solid;
 }
 .timeline-inverse>li>.timeline-item {
-    border-radius: 5px;
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-}
-.timeline:before {
- background: #39cccc!important;
+box-shadow: 0px 0px 5px #0000002e;
+ 
 }
 .box-header.with-border {
     box-shadow: 0 0 0px 0px #0000001f;
@@ -443,22 +439,8 @@ button#open {
  font-size: 15px;
  color: #444;
 }
-
-.fa-regular, .far {
-    font-weight: bolder;
-    color: red;
-    font-size: large;
-}
 button#ex {
     box-shadow: inset 0.1px 0.1px 2px 0px black;
-}
-.fa-user-edit:before, .fa-user-pen:before {
-    zoom: 1.5;
-    color: dodgerblue;
-}
-.fa-level-up-alt:before, .fa-turn-up:before {
-    zoom: 1.5;
-    color: darkgoldenrod;
 }
 div#remaining_time {
     font-size: x-large;
@@ -466,25 +448,7 @@ div#remaining_time {
 div#notice {
     text-wrap: balance;
     text-align: center;
-}
-.fa-marker:before {
-    zoom: 1.5;
-    color: brown;
-}
-.fa-user-graduate:before {
-    zoom: 1.5;
-}
-.fa-money-check-alt:before, .fa-money-check-dollar:before {
-    zoom: 1.5;
-    color: darkblue;
-}
-.fa-ban:before, .fa-cancel:before {
-    zoom: 1.5;
-    color: red;
-}
-.fa-check:before {
-    zoom: 1.5;
-    color: forestgreen;
+    margin-bottom: -10px;
 }
 .box.box-solid.box-primary {
     border: 1px solid #0000002e;
@@ -529,9 +493,11 @@ div#notice {
     color: #444;
     border-radius: 5px;
     background: #e9ecef;
+    border-bottom: black solid 1px;
 }
 .nav-tabs .nav-link.active, .nav-tabs>li>a.active, .nav-tabs .nav-pills>li>a.active, .nav-tabs ul.nav.navbar-nav>li>a.active, .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-item.in .nav-link, .nav-tabs .nav-item.show .nav-tabs>li>a, .nav-tabs .nav-item.in .nav-tabs>li>a, .nav-tabs .nav-item.show .nav-pills>li>a, .nav-tabs .nav-item.in .nav-pills>li>a, .nav-tabs>li.show .nav-link, .nav-tabs>li.in .nav-link, .nav-tabs>li.show .nav-tabs>li>a, .nav-tabs>li.in .nav-tabs>li>a, .nav-tabs>li.show .nav-pills>li>a, .nav-tabs>li.in .nav-pills>li>a, .nav-tabs .nav-pills>li.show .nav-link, .nav-tabs .nav-pills>li.in .nav-link, .nav-tabs .nav-pills>li.show .nav-tabs>li>a, .nav-tabs .nav-pills>li.in .nav-tabs>li>a, .nav-tabs .nav-pills>li.show .nav-pills>li>a, .nav-tabs .nav-pills>li.in .nav-pills>li>a, .nav-tabs .nav-item.show ul.nav.navbar-nav>li>a, .nav-tabs .nav-item.in ul.nav.navbar-nav>li>a, .nav-tabs>li.show ul.nav.navbar-nav>li>a, .nav-tabs>li.in ul.nav.navbar-nav>li>a, .nav-tabs .nav-pills>li.show ul.nav.navbar-nav>li>a, .nav-tabs .nav-pills>li.in ul.nav.navbar-nav>li>a, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) .nav-link, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) .nav-link, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) .nav-tabs>li>a, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) .nav-tabs>li>a, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) .nav-pills>li>a, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) .nav-pills>li>a, .nav-tabs ul.nav.navbar-nav>li.show:not(.dropdown) ul.nav.navbar-nav>li>a, .nav-tabs ul.nav.navbar-nav>li.in:not(.dropdown) ul.nav.navbar-nav>li>a {
     background-color: #e9ecef;
+    border-bottom: 1px solid #3c8dbc;
 }
 .selectize-input, .selectize-control.single .selectize-input.input-active {
     background: #ffffff9c;
@@ -546,7 +512,7 @@ div#student_course {
     text-align: center;
 }
 .time {
-    margin-left: 20px;
+    margin: 10px;
     text-align: center;
 }
 .fa-envelope:before {
@@ -561,13 +527,21 @@ div#student_course {
     margin: 1px;
     border-radius: 20px;
 }
-.fa-x:before {
-    color: red;
-}
 
 .fa-phone:before {
  zoom: 0.9;
 }
 div#tuition {
     display: flex;
+}
+.fa-circle-xmark:before, 
+.fa-times-circle:before,
+.fa-xmark-circle:before {
+    color: red;
+}
+.bg-teal {
+    background-color: #d2d6de !important;
+}
+.timeline>li>.timeline-item>.time {
+    padding: 0;
 }
