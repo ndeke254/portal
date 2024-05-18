@@ -84,75 +84,58 @@ ui <- navbarPage(
           solidHeader = TRUE,
           status = "primary",
           width = 12,
-          fluidRow(
-           style = "display: flex; flex-wrap: nowrap; align-items: center;",
-          column(
-           width = 2, 
-            selectizeInput(
-              inputId = "reg",
-              label = "Registration number", # nolint
-              multiple = FALSE,
-              choices = NULL
+           style = "display: flex; flex-wrap: nowrap; 
+           align-items: center; gap: 5px;",
+           selectizeInput(
+            inputId = "reg",
+            label = "Registration number", # nolint
+            multiple = FALSE,
+            choices = NULL,
+            width = "150px"
+           ),
+           disabled(
+            textInput(
+             inputId = "name",
+             label = "Student name",
+             placeholder = "Selected student",
+             width = "250px"
             )
            ),
-          column(
-           width = 2,
-            disabled(
-              textInput(
-                inputId = "name",
-                label = "Student name",
-                placeholder = "Selected student"
-              )
-            )
+           selectizeInput(
+            inputId = "code",
+            label = "Code", # nolint
+            multiple = FALSE,
+            choices = NULL,
+            width = "100px"
+            ),
+           disabled(
+            textInput(
+             inputId = "course",
+             label = "Course",
+             placeholder = "Selected course",
+             width = "300px"
+             )
            ),
-          column(
-           width = 1,
-            selectizeInput(
-              inputId = "code",
-              label = "Code", # nolint
-              multiple = FALSE,
-              choices = NULL
-            )
+           numericInput(
+            inputId = "score",
+            label = "Score",
+            value = NULL,
+            min = 1,
+            max = 99,
+            width = "100px"
+            ),
+           disabled(
+            textInput("grade", "Grade", width = "100px"),
+            hidden(textInput("id", "ID", value = 0)),
+            hidden(textInput("time", "Time")),
+            hidden(textInput("lecturer", "Lecturer")),
+            hidden(textInput("actions", "Actions"))
            ),
-          column(
-           width = 3,
-            disabled(
-              textInput(
-                inputId = "course",
-                label = "Course",
-                placeholder = "Selected course"
-              )
-            )
-           ),
-          column(
-           width = 1,
-            numericInput(
-              inputId = "score",
-              label = "Score",
-              value = NULL,
-              min = 1,
-              max = 99
-            )
-           ),
-          column(
-           width = 1,
-            disabled(
-              textInput("grade", "Grade"),
-              hidden(textInput("id", "ID", value = 0)),
-              hidden(textInput("time", "Time")),
-              hidden(textInput("lecturer", "Lecturer")),
-              hidden(textInput("actions", "Actions"))
-            )
-           ),
-          column(
-           width = 1,
-              loadingButton("submit", "Submit",
-                            style = "width: 100px",
-                            loadingLabel = "Entering",
-                            loadingSpinner = "cog")
+           loadingButton("submit", "Submit",
+                         style = "width: 100px",
+                         loadingSpinner = "cog"
            )
-          )
-          ),
+        ),
         tags$hr(),
         box(
           title = "Released Exam Results",
@@ -167,401 +150,405 @@ ui <- navbarPage(
       )
     )
   ),
-  tabPanel(
+ tabPanel(
   title = "Administrator", # nolint
   value = "admin",
   icon = icon("table-cells"),
   tabsetPanel(
-      tabPanel(
-        title = "REGISTRATION",
-        box(
-          title = "Enter Student Details",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          splitLayout(
-            cellWidths = c("15.111%", "7.111%", "11.111%", "5.111%", "11.111%",
-                           "20.111%", "11.111%", "1.111%"),
-            cellArgs = list(style = "padding: 3px"),
-            textInput(
-             label = "Name",
-             inputId = "Name",
-             placeholder = "Enter Student name"
-             ),
-            selectInput(
-              inputId = "Gender",
-              label = "Gender",
-              choices = c("Male", "Female"),
-              selected = NULL
-            ),
-            numericInput(
-              inputId = "ID", "ID",
-              value = ""
-            ),
-            selectInput(
-              inputId = "Code",
-              label = "Code",
-              choices = c("X74", "X75"),
-              selected = NULL
-            ),
-            disabled(
-              hidden(
-                textInput(
-                  inputId = "Date",
-                  label = "Date",
-                  value = format(Sys.time(), "%d/%m/%Y %H:%M:%S")
-                )
-              ),
-              textInput(
-                inputId = "Reg",
-                label = "Registration Number",
-                value = "",
-                placeholder = "Enter Registration number"
-              )
-            ),
-            fileInput(
-              inputId = "photoInput",
-              label = "Select Photo",
-              accept = c("image/jpeg", "image/png"),
-            ),
-            imageOutput(
-              outputId = "previewImage",
-              width = "100%",
-              height = "65px"
-            ),
-            tags$div(
-              hidden(
-                textInput(
-                  inputId = "Course",
-                  label = "Course"
-                )
-              ),
-              hidden(
-                textInput(
-                  inputId = "Buttons",
-                  label = ""
-                )
-              ),
-              hidden(
-                textInput(
-                  inputId = "Year",
-                  label = "Year",
-                  value = "1"
-                )
-              )
-            ),
-            loadingButton(
-              inputId = "registerButton",
-              label = "Register",
-              style = "width: 110px; margin-top: 30px;",
-              loadingLabel = "Registering",
-              loadingSpinner = "cog"
-            )
-          )
-        ),
-        tags$hr(),
-        box(
-          title = "Registered Students Details",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          DT::dataTableOutput("registrationTable")
-        )
+   tabPanel(
+    title = "REGISTRATION",
+    box(
+     title = "Enter Student Details",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     style = "display: flex; flex-wrap: nowrap;
+     align-items: center; gap: 5px;",
+     textInput(
+      label = "Name",
+      inputId = "Name",
+      placeholder = "Enter Student name",
+      width = "700px"
       ),
-      tabPanel(
-        title = "STATISTICS",
-        box(
-          title = "Real-time Track",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          fluidRow(
-            valueBoxOutput(
-              outputId = "registered_no",
-              width = 2
-            ),
-            valueBoxOutput(
-              outputId = "available_marks",
-              width = 2
-            ),
-            valueBoxOutput( 
-              outputId = "missing_marks",
-              width = 2
-            ),
-            valueBoxOutput(
-              outputId = "failed_marks",
-              width = 2
-            ),
-            valueBoxOutput(
-              outputId = "waiting_promotion",
-              width = 2
-            ),
-            valueBoxOutput(
-              outputId = "grad_students",
-              width = 2
-            )
-          )
-        ),
-        box(
-          title = "Course Registration",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          fluidRow(
-            column(
-              width = 12,
-              align = "center",
-              br(),
-              switchInput(inputId = "switch")
-            )
-          ),
-          fluidRow(
-            column(
-              width = 3,
-              align = "center",
-              box(
-                title = "Set Date/Time",
-                solidHeader = TRUE,
-                status = "primary",
-                width = 12,
-                dateInput(
-                  inputId = "target_date",
-                  label = "Select a End Date:",
-                  format = "dd-mm-yyyy",
-                  min = Sys.Date()
-                ),
-                timeInput(
-                  inputId = "select_time",
-                  label = "Enter End time"
-                ),
-                br(),
-                tags$div(
-                  actionButton(
-                    inputId = "open",
-                    label = "Open",
-                    icon = icon("unlock")
-                  ),
-                  actionButton(
-                    inputId = "close",
-                    label = "Close",
-                    icon = icon("lock")
-                  )
-                )
-              )
-            ),
-            column(3, align = "center",
-              box(
-                title = "End Date/Time",
-                solidHeader = TRUE,
-                status = "primary",
-                width = 12,
-                textOutput(
-                  outputId = "flip_time"
-                ),
-                tags$div(
-                  id = "table",
-                  DT::dataTableOutput("set_time")
-                )
-              )
-            ),
-            column(
-              width = 3,
-              align = "center",
-              box(
-                title = "CountDown",
-                solidHeader = TRUE,
-                status = "primary",
-                width = 12,
-                textOutput("remaining_time"),
-                br(),
-                shinyWidgets::progressBar(
-                  id = "progress_bar",
-                  value = 50
-                )
-              )
-            ),
-            column(
-              width = 3,
-              align = "center",
-              box(
-                title = "Write Notice",
-                solidHeader = TRUE,
-                status = "primary",
-                width = 12,
-                textAreaInput(
-                  inputId = "post_writeup",
-                  label = "",
-                  value = "",
-                  placeholder = "Enter your announcement here..."
-                ),
-                br(),
-                tags$div(
-                  actionButton(
-                    inputId = "post",
-                    label = "Post",
-                    icon = icon("bullhorn")
-                  ),
-                  actionButton(
-                    inputId = "unpost",
-                    label = "Edit",
-                    icon = icon("pencil")
-                  )
-                )
-              )
-            )
-          )
+     selectInput(
+      inputId = "Gender",
+      label = "Gender",
+      choices = c("Male", "Female"),
+      selected = NULL,
+      width = "300px"
+      ),
+     numericInput(
+      inputId = "ID", "ID",
+      value = "",
+      width = "400px"
+      ),
+     selectInput(
+      inputId = "Code",
+      label = "Code",
+      choices = c("X74", "X75"),
+      selected = NULL,
+      width = "300px"
+      ),
+     disabled(
+      hidden(
+       textInput(
+        inputId = "Date",
+        label = "Date",
+        value = format(Sys.time(), "%d/%m/%Y %H:%M:%S")
         )
+       ),
+      textInput(
+       inputId = "Reg",
+       label = "Registration Number",
+       value = "",
+       placeholder = "Enter Registration number",
+       width = "500px"
+       )
+      ),
+     fileInput(
+      inputId = "photoInput",
+      label = "Select Photo",
+      accept = c("image/jpeg", "image/png"),
+      width = "900px"
+      ),
+     imageOutput(
+      outputId = "previewImage",
+      width = "6%",
+      height = "65px"
+      ),
+     hidden(
+      textInput(inputId = "Course", label = "Course"),
+      textInput(inputId = "Buttons", label = ""),
+      textInput(inputId = "Year", label = "Year", value = "1")
+      ),
+     loadingButton(
+      inputId = "registerButton",
+      label = "Register",
+      style = "width: 110px;",
+      loadingLabel = "Registering",
+      loadingSpinner = "cog"
       )
-    )
-  ),
-  tabPanel(
-    title = "Student",
-    value = "student",
-    icon = icon("children"),
-    tabsetPanel(
-      tabPanel(
-        title = "TIMETABLE",
-        box(
-          title = "Student Details",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          splitLayout(
-            selectizeInput(
-              inputId = "student_reg",
-              label = "Registration number", # nolint
-              multiple = FALSE,
-              choices = NULL
-            ),
-            disabled(
-             textInput(
-              inputId = "student_name",
-              label = "Student name",
-              placeholder = "Selected student"
-             )
-            ),
-            disabled(
-             textInput(
-              inputId = "student_course",
-              label = "Student course",
-              placeholder = "Degree programme"
-             )
-            ),
-            disabled(
-             textInput(
-              inputId = "current_year",
-              label = "Year of study",
-              placeholder = "Current student year"
-             )
-            ),
-            progress_circle(
-              value = 0,
-              shiny_id = "bar",
-              color = "green",
-              trail_width = 4,
-              width = "100%",
-              height = "100px"
-            )
-          )
-        ),
-        tags$hr(),
-        box(
-          title = "Student Timetable",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          DT::dataTableOutput("timetable"),
-          br()
-        )
+     ),
+    tags$hr(),
+    box(
+     title = "Registered Students Details",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     DT::dataTableOutput("registrationTable")
+     )
+    ),
+   tabPanel(
+    title = "STATISTICS",
+    box(
+     title = "Real-time Track",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     fluidRow(
+      valueBoxOutput(
+       outputId = "registered_no",
+       width = 2
+       ),
+      valueBoxOutput(
+       outputId = "available_marks",
+       width = 2
+       ),
+      valueBoxOutput( 
+       outputId = "missing_marks",
+       width = 2
+       ),
+      valueBoxOutput(
+       outputId = "failed_marks",
+       width = 2
+       ),
+      valueBoxOutput(
+       outputId = "waiting_promotion",
+       width = 2
+       ),
+      valueBoxOutput(
+       outputId = "grad_students",
+       width = 2
+       )
+      )
+     ),
+    box(
+     title = "Course Registration",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     fluidRow(
+      column(
+       width = 12,
+       align = "center",
+       br(),
+       switchInput(inputId = "switch")
+       )
       ),
-      tabPanel(
-        title = "REGISTRATION",
+     fluidRow(
+      column(
+       width = 3,
+       align = "center",
+       box(
+        title = "Set Date/Time",
+        solidHeader = TRUE,
+        status = "primary",
+        width = 12,
+        dateInput(
+         inputId = "target_date",
+         label = "Select a End Date:",
+         format = "dd-mm-yyyy",
+         min = Sys.Date()
+         ),
+        timeInput(
+         inputId = "select_time",
+         label = "Enter End time"
+         ),
         br(),
-        box(
-          title = "Course Details",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          splitLayout(
-           selectizeInput(
-            inputId = "type",
-            label = "Exam Type", # nolint
-            multiple = FALSE,
-            choices = c("FIRST ATTEMPT", "RETAKE 1",
-                        "RETAKE 2", "SUPPLEMENTARY")
-           ),
-            disabled(
-              selectizeInput(
-                inputId = "register_code",
-                label = "Code", # nolint
-                multiple = FALSE,
-                choices = NULL
-              )
-            ),
-            disabled(
-              textInput(
-                inputId = "register_unit",
-                label = "Register Unit", # nolint
-                value =  NULL,
-                placeholder = "Selected Unit"
-              )
-            ),
-            div(
-              loadingButton(
-                inputId = "register",
-                label = "Register",
-                style = "width: 110px;",
-                loadingLabel = "Registering",
-                loadingSpinner = "cog"
-              )
-            ),
-            tags$div(
-              style = "color: red; font-weight: bold;",
-              textOutput("notice"),
-              tags$div(id = "flip",
-                tags$div(
-                  class = "time",
-                  textOutput(
-                    outputId = "days"
-                  ),
-                  "Days"
-                ),
-                tags$div(
-                  class = "time",
-                  textOutput(
-                    outputId = "hours"
-                  ),
-                  "Hours"
-                ),
-                tags$div(
-                  class = "time",
-                  textOutput(
-                    outputId = "minutes"
-                  ),
-                  "Minutes"
-                ),
-                tags$div(
-                  class = "time",
-                  textOutput(
-                    outputId = "seconds"
-                  ),
-                  "Seconds"
-                )
-              )
-            )
+        tags$div(
+         actionButton(
+          inputId = "open",
+          label = "Open",
+          icon = icon("unlock")
+          ),
+         actionButton(
+          inputId = "close",
+          label = "Close",
+          icon = icon("lock")
           )
-        ),
-        box(
-          title = "Student - Year Courses",
-          solidHeader = TRUE,
-          status = "primary",
-          width = 12,
-          DT::dataTableOutput("registered_units"),
-          br()
+         )
         )
+       ),
+      column(3, 
+             align = "center",
+             box(
+              title = "End Date/Time",
+              solidHeader = TRUE,
+              status = "primary",
+              width = 12,
+              textOutput(
+               outputId = "flip_time"
+               ),
+              tags$div(
+               id = "table",
+               DT::dataTableOutput("set_time")
+               )
+              )
+             ),
+      column(
+       width = 3,
+       align = "center",
+       box(
+        title = "CountDown",
+        solidHeader = TRUE,
+        status = "primary",
+        width = 12,
+        textOutput("remaining_time"),
+        br(),
+        shinyWidgets::progressBar(
+         id = "progress_bar",
+         value = 50
+         )
+        )
+       ),
+      column(
+       width = 3,
+       align = "center",
+       box(
+        title = "Write Notice",
+        solidHeader = TRUE,
+        status = "primary",
+                width = 12,
+        textAreaInput(
+         inputId = "post_writeup",
+         label = "",
+         value = "",
+         placeholder = "Enter your announcement here..."
+         ),
+        br(),
+        tags$div(
+         actionButton(
+          inputId = "post",
+          label = "Post",
+          icon = icon("bullhorn")
+          ),
+         actionButton(
+          inputId = "unpost",
+          label = "Edit",
+          icon = icon("pencil")
+          )
+         )
+        )
+       )
+      )
+     )
+    )
+   )
+  ),
+ tabPanel(
+  title = "Student",
+  value = "student",
+  icon = icon("children"),
+  div(
+   id = "studentDetails",
+   style = "padding-top: 70px;",
+  box(
+   title = "Student Details",
+   solidHeader = TRUE,
+   status = "primary",
+   width = 12,
+   style = "display: flex; flex-wrap: nowrap;
+     align-items: center; gap: 5px;",
+    selectizeInput(
+     inputId = "student_reg",
+     label = "Registration number", # nolint
+     multiple = FALSE,
+     choices = NULL,
+     width = "400px"
+    ),
+    disabled(
+     textInput(
+      inputId = "student_name",
+      label = "Student name",
+      placeholder = "Selected student",
+      width = "400px"
+      )
+    ),
+    disabled(
+     textInput(
+      inputId = "student_course",
+      label = "Student course",
+      placeholder = "Degree programme",
+      width = "700px"
+      )
+    ),
+    disabled(
+     textInput(
+      inputId = "current_year",
+      label = "Year of study",
+      placeholder = "Current student year",
+      width = "400px"
+      )
+    ),
+    progress_circle(
+     value = 0,
+     shiny_id = "bar",
+     color = "green",
+     trail_width = 4,
+     width = "100%",
+     height = "100px"
+    )
+  )
+  ),
+  tags$hr(),
+  div(
+   id = "studentTabs",
+  style = "margin-top: -80px;",
+  tabsetPanel(
+   tabPanel(
+    title = "TIMETABLE",
+    box(
+     title = "Student Timetable",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     DT::dataTableOutput("timetable"),
+     br()
+     )
+    ),
+   tabPanel(
+    title = "REGISTRATION",
+    br(),
+    box(
+     title = "Course Details",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     style = "display: flex; flex-wrap: nowrap;
+     align-items: center; gap: 5px;",
+     selectizeInput(
+      inputId = "type",
+      label = "Exam Type", # nolint
+      multiple = FALSE,
+      choices = c("FIRST ATTEMPT", "RETAKE 1",
+                  "RETAKE 2", "SUPPLEMENTARY"),
+      width = "250px"
       ),
-      tabPanel(
-        title = "RESULTS",
+     disabled(
+      selectizeInput(
+       inputId = "register_code",
+       label = "Code", # nolint
+       multiple = FALSE,
+       choices = NULL,
+       width = "200px"
+       )
+      ),
+     disabled(
+      textInput(
+       inputId = "register_unit",
+       label = "Register Unit", # nolint
+       value =  NULL,
+       placeholder = "Selected Unit",
+       width = "300px"
+       )
+      ),
+     div(
+      loadingButton(
+       inputId = "register",
+       label = "Register",
+       style = "width: 110px;",
+       loadingLabel = "Registering",
+       loadingSpinner = "cog"
+       )
+      ),
+     tags$div(
+      style = "color: red; font-weight: bold; margin-left: 85px;
+      border-radius: 5px; padding: 5px; box-shadow: 1px 1px 3px #00000099;",
+      textOutput("notice"),
+      hr(),
+      tags$div(id = "flip",
+               tags$div(
+                class = "time",
+                textOutput(
+                 outputId = "days"
+                 ),
+                "Days"
+                ),
+               tags$div(
+                class = "time",
+                textOutput(
+                 outputId = "hours"
+                 ),
+                "Hours"
+                ),
+               tags$div(
+                class = "time",
+                textOutput(
+                 outputId = "minutes"
+                 ),
+                "Minutes"
+                ),
+               tags$div(
+                class = "time",
+                  textOutput(
+                   outputId = "seconds"
+                   ),
+                "Seconds"
+                )
+               )
+      )
+    ),
+    box(
+     title = "Student - Registered Courses",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     DT::dataTableOutput("registered_units"),
+     br()
+     )
+    ),
+   tabPanel(
+    title = "RESULTS",
         br(),
         fluidRow(
           column(6,
@@ -620,8 +607,7 @@ ui <- navbarPage(
          valueBoxOutput(
           outputId = "total_fees",
           width = 3
-         ),
-         valueBoxOutput(
+         ), valueBoxOutput(
           outputId = "paid_fees",
           width = 3
          ),
@@ -697,6 +683,7 @@ ui <- navbarPage(
           )
         )
       )
-    )
+   )
+  )
   )
 )
