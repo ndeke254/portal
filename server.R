@@ -645,17 +645,17 @@ moveSentence();'
      action_icon <- current_data$Actions[j]
       
       # Create a lookup table for action icons and corresponding set icons
-      icon_lookup <- c("INSERT NEW" = "address-card",
+      icon_lookup <- c("INSERT NEW" = "user-plus",
                        "UPDATE USER" = "user-pen",
                        "PROMOTE STUDENT" = "turn-up",
                        "REGISTER UNIT" = "marker",
-                       "SUCCESS REGISTRATION" = "thumbs-up",
+                       "SUCCESS REGISTRATION" = "list",
                        "UPDATE MARK" = "user-graduate",
                        "PAID FEES" = "money-check-dollar",
                        "DELETE MARK" = "ban",
-                       "EDIT MARK" = "pen-to-square",
+                       "EDIT MARK" = "pencil",
                        "APPROVE MARK" = "check",
-                       "PRINT TRANSCRIPT" = "file-pdf",
+                       "PRINT TRANSCRIPT" = "download",
                        "REJECT MARK" = "x")
       
       # Vectorized approach to set icons
@@ -1368,21 +1368,21 @@ moveSentence();'
   output$total_fees <- renderValueBox({
    value <- paste("Ksh.", prettyNum(fees, big.mark =',', scientific = FALSE))
    my_valuebox(value,  
-               title = "TUITION FEES INVOICE",
+               title = "Tuition Fees Invoice",
                subtitle = paste("Fees payable for year", student_year),
                icon = icon("file-invoice"),
-               color = "light-blue"
+               color = "bg-info"
    )
   })
   ########
-  output$paid_fees <- renderValueBox({
+  output$paid_fees <-renderValueBox({
    value <- token_table[, sum(`Amount Ksh`)] 
    value <- paste("Ksh.", prettyNum(value, big.mark =',', scientific = FALSE))
    my_valuebox(value,  
-               title = "TOTAL PAID",
-               subtitle = paste("You have paid"),
-               icon = icon("money-check"),
-               color = "light-blue"
+                   title = "Total Paid",
+                   subtitle = paste("You have paid"),
+                   icon = icon("money-check"),
+                   color = "bg-info"
    )
   })
   #######
@@ -1391,20 +1391,20 @@ moveSentence();'
    value <- as.numeric(fees) - paid
    value <- paste("Ksh.", prettyNum(value, big.mark =',', scientific = FALSE))
    my_valuebox(value,  
-               title = "OUTSTANDING BALANCE",
+               title = "Outstanding Balance",
                subtitle = paste("Amount to clear"),
                icon = icon("sack-xmark"),
-               color = "light-blue"
+               color = "bg-info"
    )
   })
   ######
   output$last_token <- renderValueBox({
    n <- token_table[, .N]
    my_valuebox(n,  
-               title = "PAYMENTS INSTALMENTS",
-               subtitle = paste("Number of times student has paid."),
+               title = "Payments Instalments",
+               subtitle = paste("Number of times student has paid"),
                icon = icon("hashtag"),
-               color = "light-blue"
+               color = "bg-info"
    )
   })
  })
@@ -1413,6 +1413,10 @@ moveSentence();'
  
  # prepare the transcripts
  observeEvent(input$transcripts,{
+  
+  # show system busy on download initiation
+  show_modal_spinner()
+  
   student_reg <- input$student_reg
   
   #student details
@@ -1607,7 +1611,7 @@ moveSentence();'
    
    # Render the R Markdown template with the data
    render_result <- rmarkdown::render("transcript1.Rmd",
-                                      output_file = paste(reg_No,
+                                      output_file = paste0(reg_No,
                                                           "_transcript.html"),
                                       params = list(data1 = table_data1,
                                                     name = r_name,
@@ -1623,7 +1627,7 @@ moveSentence();'
    
    # Render the R Markdown template with the data
    render_result <- rmarkdown::render("transcript2.Rmd",
-                                      output_file = paste(reg_No,
+                                      output_file = paste0(reg_No,
                                                           "_transcript.html"),
                                       params = list(data1 = table_data1,
                                                     data2 = table_data2,
@@ -1640,7 +1644,7 @@ moveSentence();'
    
    # Render the R Markdown template with the data
    render_result <- rmarkdown::render("transcript3.Rmd",
-                                      output_file = paste(reg_No,
+                                      output_file = paste0(reg_No,
                                                           "_transcript.html"),
                                       params = list(data1 = table_data1,
                                                     data2 = table_data2,
@@ -1658,7 +1662,7 @@ moveSentence();'
    
    # Render the R Markdown template with the data
    render_result <- rmarkdown::render("transcript4.Rmd",
-                                      output_file = paste(reg_No,
+                                      output_file = paste0(reg_No,
                                                           "_transcript.html"),
                                       params = list(data1 = table_data1,
                                                     data2 = table_data2,
@@ -1682,7 +1686,7 @@ moveSentence();'
   reg_no <- reg_no
   Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
   Actions <- "PRINT TRANSCRIPT"
-  Description <- paste("Printed transcript: ",reg_no,"_transcript.pdf") 
+  Description <- paste0("Printed transcript: ",reg_no,"_transcript.pdf") 
   
   #write changes
   timeline_query <- paste0("INSERT INTO student_timeline
@@ -1690,24 +1694,54 @@ moveSentence();'
   DBI::dbSendQuery(con,timeline_query)
   
   #convert HTML to a pdf file
-  pdf <- chrome_print(input = render_result,
-                      output = paste(reg_no,"_transcript.pdf"))
   
-  #PDF ready
-  resetLoadingButton("transcripts")
-  showToast("info", "Transcripts ready!",
-            .options = myToastOptions)
-  
-  # Show the download link
-  shinyjs::show("download") 
-  
-  #once download is clicked
-  output$download <- downloadHandler(
-   filename =  paste(reg_no,"_transcript.pdf"),
-   content = function(file) {
-    file.copy(pdf, file)
+  # create extra chrome arguments to take in print
+  chrome_extra_args <- function(default_args = c("--disable-gpu")) {
+   args <- default_args
+   # Test whether we are in a shinyapps container
+   if (identical(Sys.getenv("R_CONFIG_ACTIVE"), "shinyapps")) {
+    args <- c(args,
+              "--no-sandbox", # required because we are in a container
+              "--disable-dev-shm-usage") # in case of low available memory
    }
-  )
+   args
+  }
+  
+  # create path for the html file
+  path <- gsub("/","", paste0(reg_no,"_transcript.html"))
+  
+  # print the html to pdf
+  pagedown::chrome_print(
+   input = path,
+   output = gsub("html", "pdf", path),
+   extra_args = chrome_extra_args(),
+   verbose = 1,
+   async = TRUE # returns a promise
+   )$then(
+    onFulfilled = function(value) {
+     #PDF ready
+     resetLoadingButton("transcripts")
+     showToast("info", "Transcripts ready!",
+               .options = myToastOptions)
+     
+     #once download button is clicked
+     output$download <- downloadHandler(
+      filename =  paste0(reg_no,"_transcript.pdf"),
+      content = function(file) {
+       file.copy(value, file)
+      },
+      contentType = "application/pdf"
+      )
+     # Show the download button
+     shinyjs::show("download") 
+    },
+    onRejected = function(error) {
+     showToast("error", "Transcripts printing failed!",
+               .options = myToastOptions
+               )
+     HTML("")
+    }
+   )$finally(remove_modal_spinner)
  })
  
  # create a supplementry registration
@@ -1826,6 +1860,11 @@ moveSentence();'
     paste(days,":", hours, ":", minutes, ":", seconds)
    })
   }else{
+   # Update remaining time on close
+   updateProgressBar(session, "progress_bar", value = 0)
+   output$remaining_time <- renderText({
+    paste("00:00:00:00")
+   })
    output$notice <- renderText({
     paste("Course Registration has been closed. Kindly contact your Department.")
    })
