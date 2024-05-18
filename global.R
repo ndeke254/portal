@@ -20,6 +20,7 @@ library(DBI)
 library(data.table)
 library(shinydashboardPlus)
 library(waiter)
+library(shiny.fluent)
 
 # Retrieve database credentials
 dotenv::load_dot_env()
@@ -61,7 +62,6 @@ myToastOptions <- list(
 
 my_valuebox <- function(value, title, subtitle, icon = NULL,
                         color = NULL, width = 4, href = NULL) {
-  shinydashboard:::validateColor(color)
   if (!is.null(icon))
     shinydashboard:::tagAssert(icon, type = "i")
   boxContent <- div(
@@ -69,7 +69,7 @@ my_valuebox <- function(value, title, subtitle, icon = NULL,
     div(
       class = "inner",
       tags$small(title),
-      h3(value),
+      h2(value),
       p(subtitle)
     ),
     if (!is.null(icon)) div(class = "icon-large", icon)
