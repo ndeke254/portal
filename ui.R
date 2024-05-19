@@ -66,7 +66,15 @@ ui <- navbarPage(
                                     type = "image/png",
                                     href = "logo.png"),
   tags$title("University of Kitui")), # nolint
- title = tags$img(src = "logo.png", draggable = FALSE), # nolint
+ title = tags$div(
+  tags$img(src = "logo.png", draggable = FALSE),
+  actionBttn(
+   inputId = "version",
+   label = textOutput("version_text"), 
+   style = "stretch",
+   color = "primary"
+  )
+ ),
  theme = bslib::bs_theme(4),
  tabPanel(
     title = "Lecturer",
@@ -381,6 +389,66 @@ ui <- navbarPage(
         )
        )
       )
+     )
+    ),
+   tabPanel(
+    title = "UPDATES",
+    value = "version",
+    icon = icon("code-compare"),
+    box(
+     title = "Update App Version",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 12,
+     style = "display: flex; flex-wrap: nowrap;
+     align-items: center; gap: 5px;",
+     selectizeInput(
+      inputId = "change_extent",
+      label = "Extent of changes", # nolint
+      multiple = FALSE,
+      choices = c("", "Major", "Minor", "Patch"),
+      width = "200px"
+     ),
+     selectizeInput(
+      inputId = "change_type",
+      label = "Nature of change", # nolint
+      multiple = FALSE,
+      choices = c("", "Add", "Remove", "Modify/Rewrite"),
+      width = "200px"
+     ),
+     selectizeInput(
+      inputId = "affected_area",
+      label = "Affected area", # nolint
+      multiple = FALSE,
+      choices = c("", "Tab", "Feature", "Style", "Bug fix"),
+      width = "200px"
+     ),
+     selectizeInput(
+      inputId = "admin_thought",
+      label = "The change is involves", # nolint
+      multiple = FALSE,
+      choices = c("", "Significant rewrites", 
+                  "Architectural modifications", 
+                  "Minor fixes"
+                  ),
+      width = "500px"
+     ),
+     disabled(
+     textAreaInput(
+      inputId = "summary_changes",
+      value = "",
+      label = "Summary",
+      width = "600px",
+      placeholder = "Summary of changes..."
+      )
+     ),
+     loadingButton(
+      inputId = "updateVersion",
+      label = "Update",
+      style = "width: 110px;",
+      loadingLabel = "Updating...",
+      loadingSpinner = "cog"
+     )
      )
     )
    )

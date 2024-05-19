@@ -525,9 +525,9 @@ moveSentence();'
                                    WHERE Serial LIKE", paste0("'%", number, "%'"))
   units_delete_query <- paste0("DELETE FROM registered_units 
                                    WHERE Serial LIKE", paste0("'%", number, "%'"))
-  DBI::dbSendQuery(con, delete_query)
   DBI::dbSendQuery(con, timeline_delete_query)
   DBI::dbSendQuery(con, units_delete_query)
+  DBI::dbSendQuery(con, delete_query)
   
   # Reload data from MySQL after deleting the row
   updated_data <- dbGetQuery(con, "SELECT * FROM student_details")
@@ -1415,7 +1415,7 @@ moveSentence();'
  observeEvent(input$transcripts,{
   
   # show system busy on download initiation
-  show_modal_spinner()
+  add_busy_bar()
   
   student_reg <- input$student_reg
   
@@ -1741,7 +1741,7 @@ moveSentence();'
                )
      HTML("")
     }
-   )$finally(remove_modal_spinner)
+   )$finally(remove_modal_spinner) 
  })
  
  # create a supplementry registration
@@ -1802,8 +1802,14 @@ moveSentence();'
  # create registration deadline
  observe({
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
-  status <- admin_file[[2,3]]
-  get <- admin_file[[2,2]]
+  status <- admin_file[[2,"seconds"]]
+  get <- admin_file[[2,"close"]]
+  app_version <<- admin_file[[3, "close"]]
+  
+  # update App version
+  output$version_text <- renderText(
+   paste0(paste0("V", gsub("^(\\d+)", "\\1", app_version)))
+  )
   if(status == 1){
    updateTextAreaInput(
     session = session,
@@ -1819,7 +1825,7 @@ moveSentence();'
    enable("post_writeup")
   }
   invalidateLater(1000, session)
-  time1 <- as.POSIXct(admin_file[[1,2]], tz = "Africa/Nairobi")
+  time1 <- as.POSIXct(admin_file[[1,"close"]], tz = "Africa/Nairobi")
   time2 <- as.POSIXct(Sys.time(), tz = "Africa/Nairobi")
   time_difference <- as.numeric(difftime(time1, time2, units = "secs"))
   if(time_difference > 0){
@@ -1852,7 +1858,7 @@ moveSentence();'
    output$seconds <- renderText(seconds)
    
    # update progress bar
-   progress_value <- (time_difference/as.numeric(admin_file[[1,3]]))* 100
+   progress_value <- (time_difference/as.numeric(admin_file[[1,"seconds"]]))* 100
    updateProgressBar(session, "progress_bar", value = progress_value)
    
    # show in numericals
@@ -2734,7 +2740,7 @@ moveSentence();'
   })
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
   output$set_time <- renderDataTable({
-   datatable(admin_file[1,2],
+   datatable(admin_file[1,"close"],
              escape = FALSE,
              selection = "none",
              rownames = FALSE,
@@ -2769,7 +2775,7 @@ moveSentence();'
                     WHERE id = 2", input$post_writeup, 1)
   dbExecute(con, query)
   admin_file <- as.data.table(dbGetQuery(con, "SELECT * FROM administrator_file"))
-  get <- admin_file[[2,2]]
+  get <- admin_file[[2,"close"]]
   output$announcement <- renderText({
    paste0("NOTICE: ", get)
   })
@@ -2843,6 +2849,49 @@ moveSentence();'
              "Not Allowed: Approved!",
              .options = myToastOptions)
   }
+ })
+ 
+ observeEvent(input$admin_thought, {
+  
+  # ensure all previous fields are filled before summary generation
+  req(
+   isTruthy(
+    input$change_extent != "" & 
+    input$change_type != "" &
+    input$affected_area != "" 
+    )
+  )
+  
+  # reference inputs
+  extent <- input$change_extent 
+  type <- input$change_type 
+  area <- input$affected_area
+  admin_thought <- input$admin_thought
+  
+  # get the app version from global environment
+  app_version <- strsplit(app_version, "\\.")[[1]]
+  
+  major <- as.numeric(app_version[1])
+  minor <- as.numeric(app_version[2])
+  patch <- as.numeric(app_version[3])
+  
+  # customize value according to Extent of changes
+  next_version <- c("Major" = glue::glue('V{major + 1}.{minor}.{patch}'),
+                     "Minor" = glue::glue('V{major}.{minor + 1}.{patch}'),
+                     "Patch" = glue::glue('V{major}.{minor}.{patch + 1}') 
+                     )
+  next_version <- as.list(next_version)[[input$change_extent]]
+
+  # preview a summary of version update
+  updateTextAreaInput(
+   session = session,
+   inputId = "summary_changes",
+   value = glue::glue(
+    'New Version: {next_version}
+    A {extent} change to {type} a {area} with {admin_thought}
+    '
+   )
+  )
  })
 
  session$onSessionEnded(function() {
