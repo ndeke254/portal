@@ -1,4 +1,4 @@
-ui <- navbarPage(
+ui <- shiny::navbarPage(
  position = c("fixed-top"), # nolint
  footer = tags$div(
     tags$hr(),
@@ -68,7 +68,7 @@ ui <- navbarPage(
   tags$title("University of Kitui")), # nolint
  title = tags$div(
   tags$img(src = "logo.png", draggable = FALSE),
-  actionBttn(
+  shinyWidgets::actionBttn(
    inputId = "version",
    label = textOutput("version_text"), 
    style = "stretch",
@@ -80,7 +80,7 @@ ui <- navbarPage(
     title = "Lecturer",
     value = "lecturer",
     icon = icon("person-chalkboard"),
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     useShinyFeedback(),
     useShinydashboard(),
    includeCSS("www/styles.css"),
@@ -399,9 +399,8 @@ ui <- navbarPage(
      title = "Update App Version",
      solidHeader = TRUE,
      status = "primary",
-     width = 12,
-     style = "display: flex; flex-wrap: nowrap;
-     align-items: center; gap: 5px;",
+     width = 6,
+     style = "display: block; align-items: center; gap: 5px;",
      selectizeInput(
       inputId = "change_extent",
       label = "Extent of changes", # nolint
@@ -442,7 +441,17 @@ ui <- navbarPage(
       placeholder = "Summary of changes..."
       )
      ),
-     loadingButton(
+      textAreaInput(
+      inputId = "describe_changes",
+      value = "",
+      label = "Description",
+      width = "600px",
+      placeholder = "Description of changes..."
+      ),
+       # Display the character count
+  tags$div(id = "char_count", "0/200 characters"),
+  br(),
+      loadingButton(
       inputId = "updateVersion",
       label = "Update",
       style = "width: 110px;",

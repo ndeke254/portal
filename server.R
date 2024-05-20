@@ -2851,14 +2851,15 @@ moveSentence();'
   }
  })
  
- observeEvent(input$admin_thought, {
+ observe({
   
   # ensure all previous fields are filled before summary generation
   req(
    isTruthy(
     input$change_extent != "" & 
     input$change_type != "" &
-    input$affected_area != "" 
+    input$affected_area != "" &
+    input$admin_thought != "" 
     )
   )
   
