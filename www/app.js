@@ -1,32 +1,29 @@
-  // update the count when user types characters
-  $(document).on('shiny:inputchanged', function(event) {
-    if (event.name === 'describe_changes') {
-      var maxLength = 200;
-      var textArea = document.getElementById('describe_changes');
-      if (textArea.value.length > maxLength) {
-        textArea.value = textArea.value.substring(0, maxLength);
-      }
-      var typed = textArea.value.length;
-      var remaining = maxLength - typed;
-      document.getElementById('char_count').innerText = typed + '/' + maxLength + ' words';
-    }
-  });
-
 $(document).ready(function() {
   const observer = new IntersectionObserver(function(entries) {
     if (entries[0].intersectionRatio > 0) {
       Shiny.setInputValue("screen_end_reached", true, { priority: "event" })
     }
   });
-  
   observer.observe(document.querySelector("#end"));
-
-  // textAreaInput characters control
-  // Do not exceed 200 characters
-  var maxLength = 200;
-      var textArea = document.getElementById('describe_changes');
-      textArea.setAttribute('maxlength', maxLength);
-      var typed = textArea.value.length;
-      var remaining = maxLength - typed;
-      document.getElementById('char_count').innerText = typed + '/' + maxLength + ' words';
+  
+  // check the number of words typed
+  $(document).on('input', '#describe_changes', function() {
+    var maxLength = 50;
+    var textArea = document.getElementById('describe_changes');
+    var words = textArea.value.split(/\\s+/).filter(function(word) {
+      return word.length > 0;
     });
+
+    // If the word count exceeds the maximum, block further typing
+    if (words.length > maxLength) {
+      // Get the current position of the cursor
+      var cursorPosition = textArea.selectionStart;
+
+      // Trim the value to the first 50 words
+      textArea.value = words.slice(0, maxLength).join(' ');
+
+      // Reset the cursor position
+      textArea.selectionStart = textArea.selectionEnd = cursorPosition;
+    }
+  });
+});

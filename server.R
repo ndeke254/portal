@@ -1,4 +1,6 @@
 server <- function(input, output, session) {
+
+# customize moving sentence with js to show notice/announcement
  shinyjs::runjs('
 var container = $(".moving-sentence");
 container.css("left", "100%");
@@ -73,8 +75,7 @@ moveSentence();'
    code <- isolate(input$Code)
    date <-Sys.time()
    year <- format(date, "%Y")
-   
-   # Generate a unique 4-digit number
+  
    num <- sample(setdiff(1000:9999, usedNumbers()), 1)
    
    # Update the generatedNumber reactive value
@@ -656,6 +657,7 @@ moveSentence();'
                        "EDIT MARK" = "pencil",
                        "APPROVE MARK" = "check",
                        "PRINT TRANSCRIPT" = "download",
+                       "UPDATE VERSION" = "code-fork",
                        "REJECT MARK" = "x")
       
       # Vectorized approach to set icons
@@ -707,7 +709,7 @@ moveSentence();'
     mutate(DateOnly = as.Date(Date),
            TimeOnly = format(Date, "%H:%M:%S")) 
    return(data)
-   
+
  }
  
  # Function to load next page data
@@ -732,7 +734,7 @@ moveSentence();'
     shinyjs::hide("empty")
     loader$show()
     on.exit({
-     loader$hide()
+     loader$hide() 
     })
     Sys.sleep(0.5)
     
@@ -782,7 +784,8 @@ moveSentence();'
   req(input$student_reg != "")
   student_reg <- input$student_reg
   shinyjs::hide("download") 
-  
+  shinyjs::hide("preview_pdf") 
+
   # student details
   data <- as.data.table(dbGetQuery(con, "SELECT * FROM student_details"))
   student_data <- data[Serial == student_reg, ]
@@ -1415,8 +1418,9 @@ moveSentence();'
  observeEvent(input$transcripts,{
   
   # show system busy on download initiation
-  add_busy_bar()
+  show_modal_spinner(text = "Please Wait...")
   
+  # logged in student
   student_reg <- input$student_reg
   
   #student details
@@ -1613,6 +1617,7 @@ moveSentence();'
    render_result <- rmarkdown::render("transcript1.Rmd",
                                       output_file = paste0(reg_No,
                                                           "_transcript.html"),
+                                                                output_dir = "www",
                                       params = list(data1 = table_data1,
                                                     name = r_name,
                                                     reg = reg_no,
@@ -1629,6 +1634,8 @@ moveSentence();'
    render_result <- rmarkdown::render("transcript2.Rmd",
                                       output_file = paste0(reg_No,
                                                           "_transcript.html"),
+                                                              output_dir = "www",
+
                                       params = list(data1 = table_data1,
                                                     data2 = table_data2,
                                                     name = r_name,
@@ -1646,6 +1653,8 @@ moveSentence();'
    render_result <- rmarkdown::render("transcript3.Rmd",
                                       output_file = paste0(reg_No,
                                                           "_transcript.html"),
+                                                                                               output_dir = "www",
+
                                       params = list(data1 = table_data1,
                                                     data2 = table_data2,
                                                     data3 = table_data3,
@@ -1661,9 +1670,11 @@ moveSentence();'
   }else if(student_year == 4){
    
    # Render the R Markdown template with the data
-   render_result <- rmarkdown::render("transcript4.Rmd",
-                                      output_file = paste0(reg_No,
-                                                          "_transcript.html"),
+   render_result <- rmarkdown::render(
+    "transcript4.Rmd",
+     output_file = paste0(reg_No, "_transcript.html"),
+                output_dir = "www",
+
                                       params = list(data1 = table_data1,
                                                     data2 = table_data2,
                                                     data3 = table_data3,
@@ -1681,6 +1692,10 @@ moveSentence();'
    return
   }
   
+    # create path for the html file
+  path <- gsub("/","", paste0(reg_no,"_transcript.html"))
+  path <- paste0("www/", path)
+
   #update timeline
   Users <- r_name
   reg_no <- reg_no
@@ -1707,9 +1722,7 @@ moveSentence();'
    args
   }
   
-  # create path for the html file
-  path <- gsub("/","", paste0(reg_no,"_transcript.html"))
-  
+
   # print the html to pdf
   pagedown::chrome_print(
    input = path,
@@ -1732,8 +1745,10 @@ moveSentence();'
       },
       contentType = "application/pdf"
       )
-     # Show the download button
+     # Show the download and preview buttons
      shinyjs::show("download") 
+     shinyjs::show("preview_pdf") 
+
     },
     onRejected = function(error) {
      showToast("error", "Transcripts printing failed!",
@@ -1742,8 +1757,23 @@ moveSentence();'
      HTML("")
     }
    )$finally(remove_modal_spinner) 
+
  })
- 
+ # preview the transcripts before download
+ observeEvent(input$preview_pdf, {
+   reg <- gsub("/","", input$student_reg)
+  path <- paste0(reg, "_transcript.html")
+  shiny::showModal(
+  shiny::modalDialog(
+    title = "Transcript Preview",
+    size = "l",
+    easyClose = TRUE,
+    tags$iframe(
+      src = path
+      )
+  )
+           )
+       })
  # create a supplementry registration
  observeEvent(input$type, {
   req(input$student_reg != "")
@@ -2894,7 +2924,51 @@ moveSentence();'
    )
   )
  })
+  # Allow user description of new version updates
+  observeEvent(input$describe_changes, {
+    str <- input$describe_changes
+    words <- str_split(str, "\\s+")[[1]]
+    words <- words[words != ""]
+    word_count <- length(words)
+    
+    if (word_count > 50) {
+      words <- words[1:50]
+      updateTextAreaInput(session, "describe_changes", value = paste(words, collapse = " "))
+      word_count <- 50
+    
+    }
 
+    output$word_count <- renderText({
+      glue("{word_count}/50 Words")
+    })
+  })
+  
+  # save changes to database
+  observeEvent(input$updateVersion, {
+  #update timeline
+  Users <- "Administrator"
+  Dates <- format(Sys.time(), "%d/%m/%Y %H:%M:%S")
+  Actions <- "UPDATE VERSION"
+  Description <- "here"
+  #write changes
+  timeline_query <- "INSERT INTO student_timeline
+  values('X74/0000/2024', 'Dates', 'Users', 'Actions', 'Description');" |>
+      stringr::str_replace_all(pattern = "Dates", replacement = Dates) |>
+    stringr::str_replace_all(pattern = "Users", replacement = Users)  |>
+    stringr::str_replace_all(pattern = "Actions", replacement = Actions)  |>
+    stringr::str_replace_all(pattern = "Description", replacement = Description)  
+# Execute query
+  DBI::dbSendQuery(con, timeline_query)
+     showToast("success",
+             "App Version Updated",
+             .options = myToastOptions )
+      resetLoadingButton("updateVersion")
+  })
+  # a timeline output for version updates
+ output$version_timeline <- renderUI({
+ # Call load_next_page function
+ load_next_page()
+})
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends
  })

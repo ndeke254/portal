@@ -334,10 +334,6 @@ h1, .h1 {
 .bttn-unite.bttn-default:after {
      background: #7583a1;
 }
-a#download {
-    margin-top: -55px;
-    margin-left: 180px;
-}
 .card, .well {
     background-color: transparent;
     border: 0px solid rgba(0,0,0,0.125);
@@ -544,4 +540,20 @@ div#tuition {
 }
 .timeline>li>.timeline-item>.time {
     padding: 0;
+}
+.fa-regular, .far {
+    font-weight: 600;
+}
+div#pdf_buttons {
+    display: flex;
+    gap: 20px;
+}
+iframe {
+    height: 1344px;
+    width: 816px;
+    border: 0;
+    pointer-events: none;
+}
+.modal-lg, .modal-xl {
+    max-width: 847px;
 }

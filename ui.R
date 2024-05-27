@@ -83,6 +83,7 @@ ui <- shiny::navbarPage(
     shinyjs::useShinyjs(),
     useShinyFeedback(),
     useShinydashboard(),
+    prompter::use_prompt(),
    includeCSS("www/styles.css"),
     tabsetPanel(
       tabPanel(
@@ -395,6 +396,7 @@ ui <- shiny::navbarPage(
     title = "UPDATES",
     value = "version",
     icon = icon("code-compare"),
+    fluidRow(
     box(
      title = "Update App Version",
      solidHeader = TRUE,
@@ -448,8 +450,9 @@ ui <- shiny::navbarPage(
       width = "600px",
       placeholder = "Description of changes..."
       ),
+      
        # Display the character count
-  tags$div(id = "char_count", "0/200 characters"),
+  textOutput(outputId = "word_count"),
   br(),
       loadingButton(
       inputId = "updateVersion",
@@ -458,9 +461,17 @@ ui <- shiny::navbarPage(
       loadingLabel = "Updating...",
       loadingSpinner = "cog"
      )
+     ),
+      box(
+     title = "Update App Version",
+     solidHeader = TRUE,
+     status = "primary",
+     width = 6,
+    uiOutput("version_timeline")
      )
     )
    )
+  )
   ),
  tabPanel(
   title = "Student",
@@ -722,6 +733,8 @@ ui <- shiny::navbarPage(
               status = "primary",
               width = 12,
               DT::dataTableOutput("year_averages"),
+                 div(
+                id = "pdf_buttons",
               conditionalPanel(
                 condition = "input.student_reg",
                 disabled(
@@ -731,11 +744,27 @@ ui <- shiny::navbarPage(
                   )
                 )
               ),
-              shinyjs::hidden(
+           shinyjs::hidden(
+            prompter::add_prompt(
+                  actionButton(
+                  inputId = "preview_pdf",
+                  label = "",
+                  icon = icon("eye")
+                ),
+                message = "Preview",
+                rounded = TRUE,
+                bounce = TRUE
+            ),
+            prompter::add_prompt(
                 downloadButton(
                   outputId = "download",
                   label = "",
                   icon = icon("download")
+                ),
+                message = "Download",
+                rounded = TRUE,
+                bounce = TRUE
+                )
                 )
               )
             )
@@ -759,8 +788,9 @@ ui <- shiny::navbarPage(
             )
           )
         )
-      )
    )
   )
   )
+ )
 )
+

@@ -21,6 +21,8 @@ library(data.table)
 library(shinydashboardPlus)
 library(waiter)
 library(shiny.fluent)
+library(glue)
+
 
 # Retrieve database credentials
 dotenv::load_dot_env()
