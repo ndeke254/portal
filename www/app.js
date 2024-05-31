@@ -7,7 +7,7 @@ $(document).ready(function() {
   observer.observe(document.querySelector("#end"));
   
   // check the number of words typed
-  $(document).on('input', '#describe_changes', function() {
+  $(document).on('input', '#describe_changes', function() { 
     var maxLength = 50;
     var textArea = document.getElementById('describe_changes');
     var words = textArea.value.split(/\\s+/).filter(function(word) {

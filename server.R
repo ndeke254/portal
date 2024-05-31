@@ -2967,7 +2967,7 @@ moveSentence();'
   # a timeline output for version updates
  output$version_timeline <- renderUI({
  # Call load_next_page function
- load_next_page()
+ load_next_page() 
 })
  session$onSessionEnded(function() {
   dbDisconnect(con, add = TRUE)  # Disconnect when the session ends

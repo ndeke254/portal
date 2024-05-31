@@ -473,7 +473,7 @@ ui <- shiny::navbarPage(
    )
   )
   ),
- tabPanel(
+ tabPanel( 
   title = "Student",
   value = "student",
   icon = icon("children"),
